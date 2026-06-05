@@ -26,6 +26,9 @@ class TimestampMixin:
 # Get database URL from environment, default to SQLite
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/app.db")
 
+# Helper: True when the configured backend is SQLite
+_IS_SQLITE = "sqlite" in DATABASE_URL
+
 # Create engine
 engine = create_engine(
     DATABASE_URL,
@@ -649,6 +652,8 @@ def _migrate_add_last_message_at_column():
     session has no messages). Idempotent: column-add is guarded, and the
     backfill only touches rows where last_message_at is still NULL so it
     won't clobber live values on later restarts."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -685,6 +690,8 @@ def _migrate_add_last_message_at_column():
 
 def _migrate_add_document_archived_column():
     """Add `archived` to documents (soft-archive flag). Guarded + idempotent."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -704,6 +711,8 @@ def _migrate_add_document_archived_column():
 
 def _migrate_add_owner_column():
     """Add owner column to sessions table if it doesn't exist."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -723,6 +732,8 @@ def _migrate_add_owner_column():
 
 def _migrate_model_endpoints():
     """Recreate model_endpoints table if schema changed (url->base_url)."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -741,6 +752,8 @@ def _migrate_model_endpoints():
 
 def _migrate_add_hidden_models_column():
     """Add hidden_models column to model_endpoints if it doesn't exist."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -766,6 +779,8 @@ def _migrate_add_model_endpoint_owner_column():
     with an empty picker even when `allowed_models` is unrestricted.
     Backfills NULL for existing rows (treated as shared by the filter).
     """
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -786,6 +801,8 @@ def _migrate_add_model_endpoint_owner_column():
 
 def _migrate_add_model_type_column():
     """Add model_type column to model_endpoints if it doesn't exist."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -804,6 +821,8 @@ def _migrate_add_model_type_column():
 
 def _migrate_add_task_run_model_column():
     """Add model column to task_runs if it doesn't exist (records which model ran)."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -822,6 +841,8 @@ def _migrate_add_task_run_model_column():
 
 def _migrate_add_supports_tools_column():
     """Add supports_tools column to model_endpoints if it doesn't exist."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -841,6 +862,8 @@ def _migrate_add_supports_tools_column():
 
 def _migrate_add_cached_models_column():
     """Add cached_models column to model_endpoints if it doesn't exist."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -858,6 +881,8 @@ def _migrate_add_cached_models_column():
 
 def _migrate_add_notes_sort_order():
     """Add sort_order, image_url, repeat columns to notes if they don't exist."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -885,6 +910,8 @@ def _migrate_add_notes_sort_order():
 
 def _migrate_add_mode_column():
     """Add mode column to sessions table if it doesn't exist."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -903,6 +930,8 @@ def _migrate_add_mode_column():
 
 def _migrate_add_folder_column():
     """Add folder column to sessions table if it doesn't exist."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -921,6 +950,8 @@ def _migrate_add_folder_column():
 
 def _migrate_add_token_columns():
     """Add cumulative token tracking columns to sessions table."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -940,6 +971,8 @@ def _migrate_add_token_columns():
 
 def _migrate_add_owner_to_table(table_name: str, index_name: str):
     """Generic helper: add owner TEXT column + index to a table if missing."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -976,6 +1009,8 @@ def _migrate_add_api_token_scopes_column():
     working after the schema migration, but route checks no longer treat tokens
     as an unscoped bearer credential.
     """
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -1000,6 +1035,8 @@ def _migrate_assign_legacy_owner():
     sit in the DB as world-visible. Previously only swept 5 tables; the
     actual set of owner-bearing tables is much larger.
     """
+    if not _IS_SQLITE:
+        return
     import sqlite3
     import json as _json
 
@@ -1101,6 +1138,8 @@ def _migrate_backfill_document_owner_from_session():
     legacy-owner sweep, so session-linked docs get their *true* owner
     while only genuinely orphaned (sessionless) docs fall through to the
     admin assignment. Idempotent — only touches NULL-owner rows."""
+    if not _IS_SQLITE:
+        return
     try:
         with engine.connect() as conn:
             cols = [r[1] for r in conn.execute(text("PRAGMA table_info(documents)"))]
@@ -1123,6 +1162,8 @@ def _migrate_backfill_document_owner_from_session():
 
 def _migrate_add_tidy_verdict():
     """Add tidy_verdict column to documents table if missing."""
+    if not _IS_SQLITE:
+        return
     try:
         with engine.connect() as conn:
             cols = [r[1] for r in conn.execute(text("PRAGMA table_info(documents)"))]
@@ -1136,6 +1177,8 @@ def _migrate_add_tidy_verdict():
 
 def _migrate_add_doc_source_email_cols():
     """Add source-email provenance columns to documents (for the Sign-and-Reply flow)."""
+    if not _IS_SQLITE:
+        return
     cols_to_add = {
         "source_email_uid":        "VARCHAR",
         "source_email_folder":     "VARCHAR",
@@ -1160,6 +1203,8 @@ def _migrate_add_doc_source_email_cols():
 
 def _migrate_add_task_automation_columns():
     """Add automation columns to scheduled_tasks table if missing."""
+    if not _IS_SQLITE:
+        return
     new_cols = {
         "task_type": "VARCHAR DEFAULT 'llm'",
         "action": "VARCHAR",
@@ -1233,6 +1278,8 @@ def _migrate_add_task_automation_columns():
 
 def _migrate_add_oauth_config():
     """Add oauth_config column to mcp_servers table if missing."""
+    if not _IS_SQLITE:
+        return
     try:
         with engine.connect() as conn:
             cols = [r[1] for r in conn.execute(text("PRAGMA table_info(mcp_servers)"))]
@@ -1245,6 +1292,8 @@ def _migrate_add_oauth_config():
 
 def _migrate_add_disabled_tools():
     """Add disabled_tools column to mcp_servers table if missing."""
+    if not _IS_SQLITE:
+        return
     try:
         with engine.connect() as conn:
             cols = [r[1] for r in conn.execute(text("PRAGMA table_info(mcp_servers)"))]
@@ -1257,6 +1306,8 @@ def _migrate_add_disabled_tools():
 
 def _migrate_add_task_v2_columns():
     """Add cron_expression, then_task_id, webhook_token to scheduled_tasks."""
+    if not _IS_SQLITE:
+        return
     new_cols = {
         "cron_expression": "VARCHAR",
         "then_task_id": "VARCHAR",
@@ -1298,6 +1349,8 @@ def _migrate_drop_ping_notes_tasks():
 
 def _migrate_add_notifications_enabled():
     """Per-task notification on/off toggle (default ON)."""
+    if not _IS_SQLITE:
+        return
     try:
         with engine.connect() as conn:
             cols = [r[1] for r in conn.execute(text("PRAGMA table_info(scheduled_tasks)"))]
@@ -1311,6 +1364,8 @@ def _migrate_add_notifications_enabled():
 
 def _migrate_add_crew_member_id():
     """Add crew_member_id column to sessions and scheduled_tasks tables if missing."""
+    if not _IS_SQLITE:
+        return
     try:
         with engine.connect() as conn:
             cols = [r[1] for r in conn.execute(text("PRAGMA table_info(sessions)"))]
@@ -1328,6 +1383,8 @@ def _migrate_add_crew_member_id():
 
 def _migrate_add_assistant_columns():
     """Add is_default_assistant + timezone columns to crew_members for the personal-assistant feature."""
+    if not _IS_SQLITE:
+        return
     try:
         with engine.connect() as conn:
             cols = [r[1] for r in conn.execute(text("PRAGMA table_info(crew_members)"))]
@@ -1434,6 +1491,8 @@ def _migrate_seed_email_account():
     """If email_accounts is empty and settings.json has legacy flat imap_host/smtp_host
     keys, create a single default account from them so nothing breaks for users who
     upgraded. Safe to run repeatedly — it short-circuits once any row exists."""
+    if not _IS_SQLITE:
+        return
     try:
         with engine.connect() as conn:
             tables = [r[0] for r in conn.execute(text(
@@ -1547,6 +1606,8 @@ def init_db():
 
 def _migrate_add_email_smtp_security():
     """Add explicit SMTP security mode for Proton Bridge/custom local SMTP."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -1665,6 +1726,8 @@ def _migrate_add_calendar_is_utc():
     """Add is_utc column to calendar_events so imported events can preserve
     their original UTC timestamps (Z-suffix on the wire) without touching
     legacy naive-local rows."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
@@ -1684,6 +1747,8 @@ def _migrate_add_calendar_is_utc():
 
 def _migrate_add_calendar_metadata():
     """Add importance/event_type/last_pinged columns to calendar_events table."""
+    if not _IS_SQLITE:
+        return
     import sqlite3
     db_path = DATABASE_URL.replace("sqlite:///", "")
     if not os.path.exists(db_path):
