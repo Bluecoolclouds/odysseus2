@@ -292,22 +292,42 @@ def setup_auth_routes(auth_manager: AuthManager) -> APIRouter:
                 raise HTTPException(400, f"Не удалось проверить ключ (статус {_resp.status_code})")
 
             user_data = _resp.json()
+            logger.debug("APINET /api/user/self response keys: %s", list(user_data.keys()) if isinstance(user_data, dict) else type(user_data).__name__)
+
+            # Support both flat response and {"data": {...}} wrapper
+            if isinstance(user_data, dict) and "data" in user_data and isinstance(user_data["data"], dict):
+                profile = user_data["data"]
+            else:
+                profile = user_data
 
             # Check account status first — APINET returns 200 even for blocked accounts
-            status = user_data.get("status")
+            status = profile.get("status")
             if status is not None and status != 1:
                 raise HTTPException(403, "Аккаунт заблокирован в APINET. Обратитесь к администратору.")
 
-            raw_name = (user_data.get("username") or "").strip()
+            # Try multiple field names for username
+            raw_name = (
+                profile.get("username")
+                or profile.get("login")
+                or profile.get("name")
+                or profile.get("display_name")
+                or profile.get("email")
+                or ""
+            ).strip()
             if not raw_name:
+                logger.warning("APINET profile fields: %s", list(profile.keys()) if isinstance(profile, dict) else profile)
                 raise HTTPException(400, "Не удалось получить имя пользователя от APINET")
 
+            # Sanitize: keep only safe chars for internal username
             username = _re.sub(r"[^a-z0-9_-]", "_", raw_name.lower()).strip("_")
+            # For email addresses keep only the local part
+            if "@" in raw_name:
+                username = _re.sub(r"[^a-z0-9_-]", "_", raw_name.split("@")[0].lower()).strip("_")
             if not username:
                 raise HTTPException(400, "Имя пользователя содержит недопустимые символы")
 
             # role: 1=user, 10=admin, 100=root
-            apinet_role = user_data.get("role", 1)
+            apinet_role = profile.get("role", 1)
             is_admin = apinet_role >= 10
 
         except _httpx.TimeoutException:
