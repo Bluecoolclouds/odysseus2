@@ -264,8 +264,8 @@
   <p class="setup-note" id="setupNote" style="display:none"></p>
 
   <div class="auth-tabs" id="loginTabs" style="display:none">
-    <button type="button" class="auth-tab active" id="tabPassword">Пароль</button>
-    <button type="button" class="auth-tab" id="tabApinet">APINET</button>
+    <button type="button" class="auth-tab" id="tabPassword">Пароль</button>
+    <button type="button" class="auth-tab active" id="tabApinet">APINET</button>
   </div>
 
   <div class="error" id="error" role="alert" aria-live="assertive"></div>
@@ -292,9 +292,13 @@
     </div>
 
     <div id="apinetLoginGroup" style="display:none">
+      <p style="margin:0 0 1.1rem;font-size:0.88em;line-height:1.5;opacity:0.75;">
+        Вставьте ваш API ключ из личного кабинета.<br>
+        Ещё нет ключа? Получите на <a href="https://apinet.cloud/" target="_blank" rel="noopener" style="color:var(--fg);text-decoration:underline;font-weight:500;">apinet.cloud</a> — регистрация бесплатная.
+      </p>
       <label for="apinetKey" style="display:flex;align-items:center;justify-content:space-between;">
         <span>API Key</span>
-        <a href="https://apinet.cloud/" target="_blank" rel="noopener" style="font-size:0.78em;opacity:0.6;color:var(--fg);text-decoration:underline;font-weight:400;">Получить ключ →</a>
+        <a href="https://apinet.cloud/" target="_blank" rel="noopener" style="font-size:0.78em;opacity:0.55;color:var(--fg);text-decoration:underline;font-weight:400;">Получить ключ →</a>
       </label>
       <div class="pw-wrapper">
         <input id="apinetKey" name="apinetKey" type="password" placeholder="sk-..." autocomplete="off">
@@ -302,7 +306,6 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><line x1="8" y1="16" x2="16" y2="8"/><line x1="8" y1="8" x2="16" y2="16"/></svg>
         </button>
       </div>
-      <p style="margin:-0.5rem 0 1rem;font-size:0.75em;opacity:0.5;line-height:1.4;">Ваш личный ключ из кабинета <a href="https://apinet.cloud/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">apinet.cloud</a></p>
     </div>
 
     <div id="confirmGroup" style="display:none">
@@ -393,7 +396,7 @@
   const passwordFields = document.getElementById('passwordFields');
   const apinetLoginGroup = document.getElementById('apinetLoginGroup');
 
-  let loginTab = 'password'; // 'password' | 'apinet'
+  let loginTab = 'apinet'; // 'password' | 'apinet'
 
   function setLoginTab(t) {
     loginTab = t;
