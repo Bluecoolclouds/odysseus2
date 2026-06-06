@@ -283,7 +283,7 @@ def setup_auth_routes(auth_manager: AuthManager) -> APIRouter:
         try:
             async with _httpx.AsyncClient(timeout=8.0) as _c:
                 _resp = await _c.get(
-                    "https://apinet.cloud/api/user/self",
+                    "https://apinet.cloud/api/user/verify-token",
                     headers={"Authorization": f"Bearer {api_key}"},
                 )
             if _resp.status_code in (401, 403):
