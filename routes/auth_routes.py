@@ -292,19 +292,23 @@ def setup_auth_routes(auth_manager: AuthManager) -> APIRouter:
                 raise HTTPException(400, f"Не удалось проверить ключ (статус {_resp.status_code})")
 
             user_data = _resp.json()
-            raw_name = (
-                user_data.get("username")
-                or user_data.get("login")
-                or user_data.get("name")
-                or user_data.get("email", "").split("@")[0]
-                or ""
-            ).strip()
+
+            # Check account status first — APINET returns 200 even for blocked accounts
+            status = user_data.get("status")
+            if status is not None and status != 1:
+                raise HTTPException(403, "Аккаунт заблокирован в APINET. Обратитесь к администратору.")
+
+            raw_name = (user_data.get("username") or "").strip()
             if not raw_name:
                 raise HTTPException(400, "Не удалось получить имя пользователя от APINET")
 
             username = _re.sub(r"[^a-z0-9_-]", "_", raw_name.lower()).strip("_")
             if not username:
                 raise HTTPException(400, "Имя пользователя содержит недопустимые символы")
+
+            # role: 1=user, 10=admin, 100=root
+            apinet_role = user_data.get("role", 1)
+            is_admin = apinet_role >= 10
 
         except _httpx.TimeoutException:
             raise HTTPException(400, "Не удалось подключиться к apinet.cloud. Попробуйте позже.")
@@ -315,7 +319,7 @@ def setup_auth_routes(auth_manager: AuthManager) -> APIRouter:
             raise HTTPException(500, "Ошибка при авторизации через APINET")
 
         # Auto-provision user in Odysseus on first login
-        ok = await asyncio.to_thread(auth_manager.provision_external_user, username)
+        ok = await asyncio.to_thread(auth_manager.provision_external_user, username, is_admin)
         if not ok:
             raise HTTPException(500, "Не удалось создать профиль пользователя")
 
