@@ -161,6 +161,7 @@ if AUTH_ENABLED:
         "/api/auth/setup",
         "/api/auth/signup",
         "/api/auth/login",
+        "/api/auth/login-apinet",
         "/api/auth/logout",
         "/api/auth/status",
         "/api/auth/features",
