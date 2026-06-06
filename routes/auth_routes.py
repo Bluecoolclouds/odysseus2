@@ -294,6 +294,11 @@ def setup_auth_routes(auth_manager: AuthManager) -> APIRouter:
             user_data = _resp.json()
             logger.debug("APINET /api/user/self response keys: %s", list(user_data.keys()) if isinstance(user_data, dict) else type(user_data).__name__)
 
+            # APINET returns HTTP 200 even for invalid keys — check `success` field
+            if isinstance(user_data, dict) and user_data.get("success") is False:
+                msg = user_data.get("message") or "Неверный API ключ"
+                raise HTTPException(401, f"APINET: {msg}")
+
             # Support both flat response and {"data": {...}} wrapper
             if isinstance(user_data, dict) and "data" in user_data and isinstance(user_data["data"], dict):
                 profile = user_data["data"]
