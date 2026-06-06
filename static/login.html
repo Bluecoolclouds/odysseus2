@@ -274,7 +274,7 @@
     <div id="passwordFields">
     <label for="username">Username</label>
     <div class="pw-wrapper">
-      <input id="username" name="username" type="text" required autofocus autocomplete="username">
+      <input id="username" name="username" type="text" autofocus autocomplete="username">
       <label class="remember-toggle" id="rememberToggle" title="Remember me">
         <input type="checkbox" class="remember-check" id="remember" checked aria-label="Remember me">
         <span class="remember-dot" aria-hidden="true"></span>
@@ -283,7 +283,7 @@
 
     <label for="password">Password</label>
     <div class="pw-wrapper">
-      <input id="password" name="password" type="password" required autocomplete="current-password">
+      <input id="password" name="password" type="password" autocomplete="current-password">
       <button type="button" class="pw-toggle" id="pwToggle" tabindex="-1" aria-label="Show password">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><line x1="8" y1="16" x2="16" y2="8"/><line x1="8" y1="8" x2="16" y2="16"/></svg>
       </button>
@@ -573,6 +573,24 @@
         errEl.style.display = 'block';
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<span style="position:relative;top:1px;">Create Account</span>';
+        return;
+      }
+    }
+
+    // Password login validation (required attrs removed to avoid HTML5 blocking APINET tab)
+    if (mode === 'login' && loginTab === 'password') {
+      if (!username) {
+        errEl.textContent = 'Введите имя пользователя';
+        errEl.style.display = 'block';
+        submitBtn.disabled = false;
+        document.getElementById('username').focus();
+        return;
+      }
+      if (!password) {
+        errEl.textContent = 'Введите пароль';
+        errEl.style.display = 'block';
+        submitBtn.disabled = false;
+        document.getElementById('password').focus();
         return;
       }
     }
