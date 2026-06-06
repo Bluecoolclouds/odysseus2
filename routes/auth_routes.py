@@ -42,6 +42,8 @@ class LoginRequest(BaseModel):
 class SetupRequest(BaseModel):
     username: str
     password: str
+    api_key: str = ""
+    model: str = ""
 
 
 class SignupRequest(BaseModel):
@@ -97,6 +99,68 @@ def setup_auth_routes(auth_manager: AuthManager) -> APIRouter:
         ok = await asyncio.to_thread(auth_manager.setup, body.username, body.password)
         if not ok:
             raise HTTPException(500, "Setup failed")
+
+        # Optionally save API key and model for the admin user
+        api_key = body.api_key.strip()
+        if api_key:
+            APINET_BASE_URL = "https://apinet.cloud/v1"
+            import httpx as _httpx
+            try:
+                import uuid as _uuid
+                import json as _json
+                from core.database import SessionLocal as _SL, ModelEndpoint as _ME
+                from routes.prefs_routes import _load_for_user, _save_for_user
+
+                _username = body.username.strip().lower()
+                _ep_id = str(_uuid.uuid4())[:8]
+
+                # Fetch available models to cache them
+                _model_ids = []
+                try:
+                    async with _httpx.AsyncClient(timeout=8.0) as _mc:
+                        _mr = await _mc.get(
+                            f"{APINET_BASE_URL}/models",
+                            headers={"Authorization": f"Bearer {api_key}"},
+                        )
+                    if _mr.is_success:
+                        _mdata = _mr.json()
+                        _model_ids = [m.get("id") for m in (_mdata.get("data") or []) if m.get("id")]
+                except Exception:
+                    pass
+
+                _db = _SL()
+                try:
+                    _ep = _ME(
+                        id=_ep_id,
+                        name="APINet.cloud",
+                        base_url=APINET_BASE_URL,
+                        api_key=api_key,
+                        is_enabled=True,
+                        model_type="llm",
+                        cached_models=_json.dumps(_model_ids) if _model_ids else None,
+                        owner=_username,
+                    )
+                    _db.add(_ep)
+                    _db.commit()
+                finally:
+                    _db.close()
+
+                _user_prefs = _load_for_user(_username)
+                _user_prefs["default_endpoint_id"] = _ep_id
+                # Use explicitly chosen model, or auto-pick first chat-capable one
+                chosen_model = body.model.strip()
+                if chosen_model:
+                    _user_prefs["default_model"] = chosen_model
+                elif _model_ids:
+                    _chat_model = next(
+                        (m for m in _model_ids if not any(x in m.lower() for x in ("embed", "tts", "whisper", "dall-e", "image"))),
+                        _model_ids[0]
+                    )
+                    _user_prefs["default_model"] = _chat_model
+                _save_for_user(_username, _user_prefs)
+            except Exception as _ex:
+                logger.warning(f"Failed to create endpoint for admin {body.username}: {_ex}")
+
         return {"ok": True, "message": "Admin account created"}
 
     @router.post("/signup")

@@ -292,6 +292,17 @@
       </p>
     </div>
 
+    <div id="modelGroup" style="display:none">
+      <label for="modelInput" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>Модель</span>
+        <span style="font-size:0.78em;opacity:0.5;font-weight:400;">необязательно</span>
+      </label>
+      <input id="modelInput" name="modelInput" type="text" placeholder="gpt-4o-mini" autocomplete="off" style="margin-bottom:1rem;">
+      <p style="margin:-0.7rem 0 1rem;font-size:0.75em;opacity:0.5;line-height:1.4;">
+        Оставьте пустым — система выберет автоматически
+      </p>
+    </div>
+
     <button type="submit" id="submitBtn">Sign In</button>
   </form>
 
@@ -336,6 +347,7 @@
 
   const rememberToggle = document.getElementById('rememberToggle');
   const apiKeyGroup = document.getElementById('apiKeyGroup');
+  const modelGroup = document.getElementById('modelGroup');
 
   function setMode(m) {
     mode = m;
@@ -344,7 +356,8 @@
       setupNote.textContent = 'First-time setup — create your admin account';
       setupNote.style.display = 'block';
       confirmGroup.style.display = 'block';
-      apiKeyGroup.style.display = 'none';
+      apiKeyGroup.style.display = 'block';
+      modelGroup.style.display = 'block';
       submitBtn.textContent = 'Create Admin Account';
       toggleArea.style.display = 'none';
       rememberToggle.style.display = 'none';
@@ -352,6 +365,7 @@
       setupNote.style.display = 'none';
       confirmGroup.style.display = 'block';
       apiKeyGroup.style.display = 'block';
+      modelGroup.style.display = 'none';
       submitBtn.innerHTML = '<span style="position:relative;top:1px;">Create Account</span>';
       toggleArea.style.display = 'block';
       toggleText.textContent = 'Already have an account? ';
@@ -361,6 +375,7 @@
       setupNote.style.display = 'none';
       confirmGroup.style.display = 'none';
       apiKeyGroup.style.display = 'none';
+      modelGroup.style.display = 'none';
       submitBtn.textContent = 'Sign In';
       toggleArea.style.display = signupAllowed ? 'block' : 'none';
       toggleText.textContent = "Don't have an account? ";
@@ -459,6 +474,13 @@
         signupBody.api_key = apiKey;
         // Show verifying state
         submitBtn.innerHTML = '<span class="login-spinner" aria-hidden="true"></span> Verifying key…';
+      }
+      if (mode === 'setup') {
+        const apiKey = document.getElementById('apiKey').value.trim();
+        if (apiKey) signupBody.api_key = apiKey;
+        const model = document.getElementById('modelInput').value.trim();
+        if (model) signupBody.model = model;
+        submitBtn.innerHTML = '<span class="login-spinner" aria-hidden="true"></span> Создание аккаунта…';
       }
       try {
         const res = await fetch(endpoint, {
