@@ -32,7 +32,7 @@ export const THEMES = {
   apinet:     { bg:'#ffffff', fg:'#212121', panel:'#f7f7f7', border:'#ebebeb', red:'#1a1a1a' },
 };
 
-const DEFAULT_THEME = 'dark';
+const DEFAULT_THEME = 'apinet';
 const LS_KEY = 'odysseus-theme';
 const CUSTOM_THEMES_KEY = 'odysseus-custom-themes';
 
