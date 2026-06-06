@@ -46,6 +46,11 @@ class SetupRequest(BaseModel):
     model: str = ""
 
 
+class ApiNetLoginRequest(BaseModel):
+    api_key: str
+    remember: bool = True
+
+
 class SignupRequest(BaseModel):
     username: str
     password: str
@@ -262,6 +267,118 @@ def setup_auth_routes(auth_manager: AuthManager) -> APIRouter:
             logger.warning(f"Failed to create endpoint for new user {body.username}: {_ex}")
 
         return {"ok": True, "message": "Account created"}
+
+    @router.post("/login-apinet")
+    async def login_apinet(body: ApiNetLoginRequest, request: Request, response: Response):
+        """Authenticate using an APINET API key (GET /api/user/self)."""
+        if not _login_limiter.check(request.client.host):
+            raise HTTPException(429, "Too many requests — try again later")
+        api_key = body.api_key.strip()
+        if not api_key:
+            raise HTTPException(400, "API key is required")
+
+        import httpx as _httpx
+        import re as _re
+        APINET_BASE_URL = "https://apinet.cloud/v1"
+        try:
+            async with _httpx.AsyncClient(timeout=8.0) as _c:
+                _resp = await _c.get(
+                    "https://apinet.cloud/api/user/self",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                )
+            if _resp.status_code in (401, 403):
+                raise HTTPException(401, "Неверный API ключ — проверьте его в кабинете apinet.cloud")
+            if not _resp.is_success:
+                raise HTTPException(400, f"Не удалось проверить ключ (статус {_resp.status_code})")
+
+            user_data = _resp.json()
+            raw_name = (
+                user_data.get("username")
+                or user_data.get("login")
+                or user_data.get("name")
+                or user_data.get("email", "").split("@")[0]
+                or ""
+            ).strip()
+            if not raw_name:
+                raise HTTPException(400, "Не удалось получить имя пользователя от APINET")
+
+            username = _re.sub(r"[^a-z0-9_-]", "_", raw_name.lower()).strip("_")
+            if not username:
+                raise HTTPException(400, "Имя пользователя содержит недопустимые символы")
+
+        except _httpx.TimeoutException:
+            raise HTTPException(400, "Не удалось подключиться к apinet.cloud. Попробуйте позже.")
+        except HTTPException:
+            raise
+        except Exception as _e:
+            logger.warning(f"APINET login error: {_e}")
+            raise HTTPException(500, "Ошибка при авторизации через APINET")
+
+        # Auto-provision user in Odysseus on first login
+        ok = await asyncio.to_thread(auth_manager.provision_external_user, username)
+        if not ok:
+            raise HTTPException(500, "Не удалось создать профиль пользователя")
+
+        # Save/update their LLM endpoint
+        try:
+            import uuid as _uuid, json as _json
+            from core.database import SessionLocal as _SL, ModelEndpoint as _ME
+            from routes.prefs_routes import _load_for_user, _save_for_user
+            _db = _SL()
+            try:
+                existing = _db.query(_ME).filter(
+                    _ME.owner == username,
+                    _ME.base_url == f"{APINET_BASE_URL}",
+                ).first()
+                if not existing:
+                    _model_ids = []
+                    try:
+                        async with _httpx.AsyncClient(timeout=8.0) as _mc:
+                            _mr = await _mc.get(
+                                f"{APINET_BASE_URL}/models",
+                                headers={"Authorization": f"Bearer {api_key}"},
+                            )
+                        if _mr.is_success:
+                            _model_ids = [m.get("id") for m in (_mr.json().get("data") or []) if m.get("id")]
+                    except Exception:
+                        pass
+                    _ep_id = str(_uuid.uuid4())[:8]
+                    _ep = _ME(
+                        id=_ep_id, name="APINet.cloud", base_url=APINET_BASE_URL,
+                        api_key=api_key, is_enabled=True, model_type="llm",
+                        cached_models=_json.dumps(_model_ids) if _model_ids else None,
+                        owner=username,
+                    )
+                    _db.add(_ep)
+                    _db.commit()
+                    _prefs = _load_for_user(username)
+                    _prefs["default_endpoint_id"] = _ep_id
+                    if _model_ids:
+                        _chat = next((m for m in _model_ids if not any(x in m.lower() for x in ("embed","tts","whisper","dall-e","image"))), _model_ids[0])
+                        _prefs.setdefault("default_model", _chat)
+                    _save_for_user(username, _prefs)
+                else:
+                    # Update key if it changed
+                    if existing.api_key != api_key:
+                        existing.api_key = api_key
+                        _db.commit()
+            finally:
+                _db.close()
+        except Exception as _ex:
+            logger.warning(f"APINET login: endpoint save failed for {username}: {_ex}")
+
+        token = await asyncio.to_thread(auth_manager.create_session_for_verified_user, username)
+        if not token:
+            raise HTTPException(500, "Не удалось создать сессию")
+
+        cookie_kwargs = dict(
+            key=SESSION_COOKIE, value=token, httponly=True, samesite="lax",
+            secure=os.getenv("SECURE_COOKIES", "false").lower() == "true", path="/",
+        )
+        if body.remember:
+            cookie_kwargs["max_age"] = 60 * 60 * 24 * 7
+        response.set_cookie(**cookie_kwargs)
+        return {"ok": True, "username": username}
 
     @router.post("/login")
     async def login(body: LoginRequest, request: Request, response: Response):

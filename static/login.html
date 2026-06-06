@@ -224,6 +224,23 @@
     font-family: 'Fira Code', monospace;
     pointer-events: none; user-select: none;
   }
+  .auth-tabs {
+    display: flex; margin-bottom: 1.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .auth-tab {
+    flex: 1; background: none; border: none; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; padding: 0.5rem 0.25rem 0.6rem;
+    font-family: 'Fira Code', monospace; font-size: 0.85rem; font-weight: 600;
+    color: color-mix(in srgb, var(--fg) 45%, transparent); cursor: pointer;
+    transition: color 0.15s, border-color 0.15s; width: auto;
+    border-radius: 0;
+  }
+  .auth-tab:hover { color: var(--fg); background: none; }
+  .auth-tab.active {
+    color: var(--red); border-bottom-color: var(--red);
+    background: none;
+  }
   /* Whirlpool-style spinner shown in the submit button while login /
      account-creation work is in flight — replaces the previous "Loading…"
      text. Two-color ring (muted base + accent arc) rotates continuously. */
@@ -246,9 +263,15 @@
   </h1>
   <p class="setup-note" id="setupNote" style="display:none"></p>
 
+  <div class="auth-tabs" id="loginTabs" style="display:none">
+    <button type="button" class="auth-tab active" id="tabPassword">Пароль</button>
+    <button type="button" class="auth-tab" id="tabApinet">APINET</button>
+  </div>
+
   <div class="error" id="error" role="alert" aria-live="assertive"></div>
 
   <form id="authForm" autocomplete="on">
+    <div id="passwordFields">
     <label for="username">Username</label>
     <div class="pw-wrapper">
       <input id="username" name="username" type="text" required autofocus autocomplete="username">
@@ -264,6 +287,22 @@
       <button type="button" class="pw-toggle" id="pwToggle" tabindex="-1" aria-label="Show password">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><line x1="8" y1="16" x2="16" y2="8"/><line x1="8" y1="8" x2="16" y2="16"/></svg>
       </button>
+    </div>
+
+    </div>
+
+    <div id="apinetLoginGroup" style="display:none">
+      <label for="apinetKey" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>API Key</span>
+        <a href="https://apinet.cloud/" target="_blank" rel="noopener" style="font-size:0.78em;opacity:0.6;color:var(--fg);text-decoration:underline;font-weight:400;">Получить ключ →</a>
+      </label>
+      <div class="pw-wrapper">
+        <input id="apinetKey" name="apinetKey" type="password" placeholder="sk-..." autocomplete="off">
+        <button type="button" class="pw-toggle" id="pwToggleApinetKey" tabindex="-1" aria-label="Show API key">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><line x1="8" y1="16" x2="16" y2="8"/><line x1="8" y1="8" x2="16" y2="16"/></svg>
+        </button>
+      </div>
+      <p style="margin:-0.5rem 0 1rem;font-size:0.75em;opacity:0.5;line-height:1.4;">Ваш личный ключ из кабинета <a href="https://apinet.cloud/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">apinet.cloud</a></p>
     </div>
 
     <div id="confirmGroup" style="display:none">
@@ -348,6 +387,31 @@
   const rememberToggle = document.getElementById('rememberToggle');
   const apiKeyGroup = document.getElementById('apiKeyGroup');
   const modelGroup = document.getElementById('modelGroup');
+  const loginTabs = document.getElementById('loginTabs');
+  const tabPassword = document.getElementById('tabPassword');
+  const tabApinet = document.getElementById('tabApinet');
+  const passwordFields = document.getElementById('passwordFields');
+  const apinetLoginGroup = document.getElementById('apinetLoginGroup');
+
+  let loginTab = 'password'; // 'password' | 'apinet'
+
+  function setLoginTab(t) {
+    loginTab = t;
+    errEl.style.display = 'none';
+    tabPassword.classList.toggle('active', t === 'password');
+    tabApinet.classList.toggle('active', t === 'apinet');
+    passwordFields.style.display = t === 'password' ? '' : 'none';
+    apinetLoginGroup.style.display = t === 'apinet' ? 'block' : 'none';
+    submitBtn.textContent = t === 'apinet' ? 'Войти через APINET' : 'Sign In';
+    if (t === 'apinet') {
+      document.getElementById('apinetKey').focus();
+    } else {
+      document.getElementById('username').focus();
+    }
+  }
+
+  tabPassword.addEventListener('click', () => setLoginTab('password'));
+  tabApinet.addEventListener('click', () => setLoginTab('apinet'));
 
   function setMode(m) {
     mode = m;
@@ -355,17 +419,23 @@
     if (m === 'setup') {
       setupNote.textContent = 'First-time setup — create your admin account';
       setupNote.style.display = 'block';
+      loginTabs.style.display = 'none';
+      passwordFields.style.display = '';
       confirmGroup.style.display = 'block';
       apiKeyGroup.style.display = 'block';
       modelGroup.style.display = 'block';
+      apinetLoginGroup.style.display = 'none';
       submitBtn.textContent = 'Create Admin Account';
       toggleArea.style.display = 'none';
       rememberToggle.style.display = 'none';
     } else if (m === 'signup') {
       setupNote.style.display = 'none';
+      loginTabs.style.display = 'none';
+      passwordFields.style.display = '';
       confirmGroup.style.display = 'block';
       apiKeyGroup.style.display = 'block';
       modelGroup.style.display = 'none';
+      apinetLoginGroup.style.display = 'none';
       submitBtn.innerHTML = '<span style="position:relative;top:1px;">Create Account</span>';
       toggleArea.style.display = 'block';
       toggleText.textContent = 'Already have an account? ';
@@ -373,14 +443,18 @@
       rememberToggle.style.display = 'none';
     } else {
       setupNote.style.display = 'none';
+      loginTabs.style.display = 'flex';
       confirmGroup.style.display = 'none';
       apiKeyGroup.style.display = 'none';
       modelGroup.style.display = 'none';
-      submitBtn.textContent = 'Sign In';
+      submitBtn.textContent = loginTab === 'apinet' ? 'Войти через APINET' : 'Sign In';
       toggleArea.style.display = signupAllowed ? 'block' : 'none';
       toggleText.textContent = "Don't have an account? ";
       toggleLink.textContent = 'Sign up';
-      rememberToggle.style.display = '';
+      rememberToggle.style.display = loginTab === 'password' ? '' : 'none';
+      // Show correct fields for current tab
+      passwordFields.style.display = loginTab === 'password' ? '' : 'none';
+      apinetLoginGroup.style.display = loginTab === 'apinet' ? 'block' : 'none';
     }
   }
 
@@ -500,6 +574,48 @@
       }
     }
 
+    // APINET login
+    if (mode === 'login' && loginTab === 'apinet') {
+      const apinetKey = document.getElementById('apinetKey').value.trim();
+      if (!apinetKey) {
+        errEl.textContent = 'Введите API ключ';
+        errEl.style.display = 'block';
+        submitBtn.disabled = false;
+        document.getElementById('apinetKey').focus();
+        return;
+      }
+      submitBtn.innerHTML = '<span class="login-spinner" aria-hidden="true"></span> Проверка ключа…';
+      try {
+        const res = await fetch('/api/auth/login-apinet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ api_key: apinetKey, remember: true })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Ошибка авторизации');
+        if (!data.ok) throw new Error('Ошибка авторизации');
+        sessionStorage.removeItem('ody-session-active');
+        submitBtn.innerHTML = '<span class="login-spinner" aria-hidden="true"></span>';
+        submitBtn.disabled = true;
+        Promise.all([
+          fetch('/api/sessions', { credentials: 'same-origin' }).then(r => r.json()),
+          fetch('/api/auth/features', { credentials: 'same-origin' }).then(r => r.json()),
+          fetch('/api/auth/settings', { credentials: 'same-origin' }).then(r => r.json()),
+        ]).then(([sess, feat, sett]) => {
+          sessionStorage.setItem('ody-prefetch-sessions', JSON.stringify(sess));
+          sessionStorage.setItem('ody-prefetch-features', JSON.stringify(feat));
+          sessionStorage.setItem('ody-prefetch-settings', JSON.stringify(sett));
+        }).catch(() => {}).finally(() => { window.location.replace('/'); });
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Войти через APINET';
+      }
+      return;
+    }
+
     // Login (auto-login after setup/signup too)
     const remember = document.getElementById('remember').checked;
     function finishLogin() {
@@ -579,6 +695,7 @@
   wireToggle('pwToggle', 'password');
   wireToggle('pwToggleConfirm', 'confirmPassword');
   wireToggle('pwToggleApiKey', 'apiKey');
+  wireToggle('pwToggleApinetKey', 'apinetKey');
 })();
 
 // Prevent login button and eye toggles from stealing focus on mobile (keeps keyboard open)

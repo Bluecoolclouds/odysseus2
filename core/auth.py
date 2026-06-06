@@ -414,6 +414,42 @@ class AuthManager:
             return False
         return _verify_password(password, self.users[username]["password_hash"])
 
+    def provision_external_user(self, username: str, is_admin: bool = False) -> bool:
+        """Create a user account for external auth (e.g. APINET). No usable password.
+        Returns True if user exists or was created, False on error."""
+        username = username.strip().lower()
+        if not username or username in RESERVED_USERNAMES:
+            return False
+        if username in self.users:
+            return True
+        if "users" not in self._config:
+            self._config["users"] = {}
+        random_pw = secrets.token_hex(32)
+        self._config["users"][username] = {
+            "password_hash": _hash_password(random_pw),
+            "created": time.time(),
+            "is_admin": is_admin,
+            "privileges": dict(ADMIN_PRIVILEGES if is_admin else DEFAULT_PRIVILEGES),
+            "auth_provider": "apinet",
+        }
+        self._save()
+        logger.info(f"Provisioned external user '{username}' (provider=apinet)")
+        return True
+
+    def create_session_for_verified_user(self, username: str) -> Optional[str]:
+        """Create a session token for a user already verified by external auth."""
+        username = username.strip().lower()
+        if username not in self.users:
+            return None
+        token = secrets.token_hex(32)
+        with self._sessions_lock:
+            self._sessions[token] = {
+                "username": username,
+                "expiry": time.time() + TOKEN_TTL,
+            }
+        self._save_sessions()
+        return token
+
     def create_session(self, username: str, password: str) -> Optional[str]:
         """Verify credentials and return a session token, or None."""
         username = username.strip().lower()
