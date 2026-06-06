@@ -40,10 +40,22 @@ const FONT_MAP = {
   mono: "'Fira Code', monospace",
   sans: "system-ui, -apple-system, 'Segoe UI', sans-serif",
   serif: "Georgia, 'Times New Roman', serif",
+  'public-sans': "'Public Sans', system-ui, -apple-system, sans-serif",
 };
 const DEFAULT_FONT = 'mono';
 const DEFAULT_DENSITY = 'comfortable';
 const MAX_CUSTOM_THEMES = 8;
+
+// Default fonts for built-in themes (applied when the theme swatch is clicked)
+const THEME_DEFAULT_FONT = {
+  apinet: 'public-sans',
+};
+
+// CDN stylesheet URLs for fonts that need remote loading (keyed by FONT_MAP key)
+const FONT_CDN_URLS = {
+  'public-sans': 'https://cdn.jsdelivr.net/npm/@fontsource-variable/public-sans@5/wght.css',
+};
+const _loadedFontCDNs = new Set();
 
 // Default background patterns for built-in themes
 const THEME_DEFAULT_PATTERN = {
@@ -382,6 +394,14 @@ export function applyFontDensity(font, density) {
     family = "'" + f + "', sans-serif";
   }
   if (!family) family = FONT_MAP[DEFAULT_FONT];
+  // Load CDN font stylesheet if needed (e.g. Public Sans from jsDelivr)
+  if (FONT_CDN_URLS[f] && !_loadedFontCDNs.has(f)) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = FONT_CDN_URLS[f];
+    document.head.appendChild(link);
+    _loadedFontCDNs.add(f);
+  }
   document.documentElement.style.setProperty('--font-family', family);
   document.documentElement.classList.remove('density-compact', 'density-spacious');
   if (d !== 'comfortable') document.documentElement.classList.add('density-' + d);
@@ -694,7 +714,7 @@ export function initThemeUI() {
         sw.classList.add('active');
         syncPickers(colors);
         const ct = sw.dataset.custom ? customThemes[name] : null;
-        const f = ct && ct.font ? ct.font : DEFAULT_FONT;
+        const f = ct && ct.font ? ct.font : (THEME_DEFAULT_FONT[name] || DEFAULT_FONT);
         const d = ct && ct.density ? ct.density : DEFAULT_DENSITY;
         const p = ct && ct.bgPattern ? ct.bgPattern : (THEME_DEFAULT_PATTERN[name] || 'none');
         const ec = ct && ct.bgEffectColor ? ct.bgEffectColor : (THEME_DEFAULT_EFFECT_COLOR[name] || '');
@@ -1077,7 +1097,7 @@ export function initThemeUI() {
   syncResetButtons();
 
   // Font, density, background pattern controls
-  const _initFont = (saved && saved.font) || DEFAULT_FONT;
+  const _initFont = (saved && saved.font) || (saved && THEME_DEFAULT_FONT[saved.name]) || DEFAULT_FONT;
   const _initDensity = (saved && saved.density) || DEFAULT_DENSITY;
   const _initPattern = (saved && saved.bgPattern) || (saved && THEME_DEFAULT_PATTERN[saved.name]) || 'none';
   const _initEffectColor = (saved && saved.bgEffectColor) || (saved && THEME_DEFAULT_EFFECT_COLOR[saved.name]) || '';
