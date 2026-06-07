@@ -171,6 +171,7 @@ if AUTH_ENABLED:
         "/api/version",
         "/login",
         "/teaser",
+        "/teaser-en",
     }
     AUTH_EXEMPT_PREFIXES = ["/static"]
     # Dynamic paths whose own handler proves identity via a path-embedded
@@ -766,6 +767,10 @@ async def serve_backgrounds(request: Request):
 @app.get("/teaser")
 async def teaser_page(request: Request):
     return _serve_html_with_nonce(request, abs_join(BASE_DIR, "static/teaser.html"))
+
+@app.get("/teaser-en")
+async def teaser_en_page(request: Request):
+    return _serve_html_with_nonce(request, abs_join(BASE_DIR, "static/teaser-en.html"))
 
 @app.get("/login")
 async def serve_login(request: Request):

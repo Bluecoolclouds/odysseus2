@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Odysseus — AI-рабочий стол</title>
+<title>Odysseus — Your AI Workspace</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/public-sans@5/wght.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -17,7 +17,6 @@
     --gray-5: #e8e8e8;
     --gray-6: #f5f5f5;
     --white: #ffffff;
-    --accent: #1a1a1a;
     --radius: 16px;
   }
 
@@ -32,7 +31,7 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* ─── NAV ─────────────────────────────────────────── */
+  /* NAV */
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
@@ -65,12 +64,11 @@
     background: var(--black); color: var(--white);
     font-size: 0.85rem; font-weight: 600;
     padding: 9px 20px; border-radius: 99px;
-    text-decoration: none;
-    transition: opacity .2s;
+    text-decoration: none; transition: opacity .2s;
   }
   .nav-cta:hover { opacity: .75; }
 
-  /* ─── HERO ────────────────────────────────────────── */
+  /* HERO */
   .hero {
     min-height: 100vh;
     display: flex; flex-direction: column;
@@ -130,7 +128,7 @@
   }
   .btn-secondary:hover { border-color: var(--black); transform: translateY(-1px); }
 
-  /* ─── FEATURE STRIP ───────────────────────────────── */
+  /* STRIP */
   .strip {
     background: var(--gray-6);
     border-top: 1px solid var(--gray-5);
@@ -143,7 +141,7 @@
   }
   .strip span { display: flex; align-items: center; gap: 7px; }
 
-  /* ─── SECTIONS ────────────────────────────────────── */
+  /* SECTIONS */
   section { padding: 100px 24px; max-width: 1200px; margin: 0 auto; }
   .section-label {
     font-size: 0.75rem; font-weight: 700; letter-spacing: .1em;
@@ -160,7 +158,7 @@
     color: var(--gray-2); max-width: 500px; line-height: 1.65;
   }
 
-  /* ─── FEATURE GRID ────────────────────────────────── */
+  /* FEATURE GRID */
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -185,14 +183,12 @@
   .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
   .card p { font-size: 0.88rem; color: var(--gray-2); line-height: 1.6; }
 
-  /* ─── BIG FEATURE ─────────────────────────────────── */
+  /* BIG FEATURE */
   .big-feature {
     display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
     align-items: center; padding: 100px 24px;
     max-width: 1200px; margin: 0 auto;
   }
-  .big-feature.reverse { direction: rtl; }
-  .big-feature.reverse > * { direction: ltr; }
   .feature-visual {
     border-radius: var(--radius);
     background: var(--gray-6);
@@ -210,9 +206,7 @@
     font-size: 0.82rem; color: var(--gray-1);
     line-height: 1.7;
   }
-  .mock-bar {
-    display: flex; gap: 6px; margin-bottom: 16px;
-  }
+  .mock-bar { display: flex; gap: 6px; margin-bottom: 16px; }
   .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
   .msg-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 12px; }
   .msg-avatar {
@@ -232,7 +226,7 @@
   .typing span:nth-child(2) { animation-delay: .2s; }
   .typing span:nth-child(3) { animation-delay: .4s; }
 
-  /* ─── STATS ───────────────────────────────────────── */
+  /* STATS */
   .stats {
     background: var(--black); color: var(--white);
     border-radius: var(--radius); padding: 64px;
@@ -245,7 +239,7 @@
   }
   .stat-label { font-size: 0.9rem; color: rgba(255,255,255,.55); font-weight: 500; }
 
-  /* ─── HOW ─────────────────────────────────────────── */
+  /* HOW */
   .steps {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
     margin-top: 60px;
@@ -262,7 +256,7 @@
   .step h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; }
   .step p { font-size: 0.88rem; color: var(--gray-2); line-height: 1.6; }
 
-  /* ─── CTA ─────────────────────────────────────────── */
+  /* CTA */
   .cta-section {
     text-align: center; padding: 120px 24px;
     background: var(--black); color: var(--white);
@@ -282,7 +276,7 @@
   }
   .btn-white:hover { opacity: .9; }
 
-  /* ─── FOOTER ──────────────────────────────────────── */
+  /* FOOTER */
   footer {
     border-top: 1px solid var(--gray-5);
     padding: 32px 40px;
@@ -293,7 +287,7 @@
   footer a { color: var(--gray-2); text-decoration: none; }
   footer a:hover { color: var(--black); }
 
-  /* ─── ANIMATIONS ──────────────────────────────────── */
+  /* ANIMATIONS */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(24px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -313,7 +307,6 @@
     nav { padding: 0 20px; }
     .nav-badge { display: none; }
     .big-feature { grid-template-columns: 1fr; gap: 40px; }
-    .big-feature.reverse { direction: ltr; }
     .stats { grid-template-columns: 1fr; gap: 32px; padding: 40px 24px; }
     .steps { grid-template-columns: 1fr; }
     .strip { gap: 20px; }
@@ -336,8 +329,8 @@
     <span class="nav-badge">beta</span>
   </a>
   <div class="nav-links">
-    <a class="lang-switch" href="/teaser-en">🇬🇧 EN</a>
-    <a class="nav-cta" href="/login">Войти →</a>
+    <a class="lang-switch" href="/teaser">🇷🇺 RU</a>
+    <a class="nav-cta" href="/login">Sign in →</a>
   </div>
 </nav>
 
@@ -345,90 +338,90 @@
 <div class="hero">
   <div class="hero-eyebrow">
     <span class="dot"></span>
-    Powered by APINET · Полностью self-hosted
+    Powered by APINET · Fully self-hosted
   </div>
-  <h1>Ваш личный<br><em>AI-рабочий стол</em></h1>
+  <h1>Your personal<br><em>AI workspace</em></h1>
   <p class="hero-sub">
-    Один инструмент вместо десяти подписок — чат, ресёрч, почта, календарь, заметки и редактор изображений с AI внутри.
+    One tool instead of ten subscriptions — chat, research, email, calendar, notes, and an AI image editor, all in one place.
   </p>
   <div class="hero-actions">
-    <a href="/login" class="btn-primary">Начать бесплатно →</a>
-    <a href="https://apinet.cloud" target="_blank" class="btn-secondary">Получить ключ APINET</a>
+    <a href="/login" class="btn-primary">Get started free →</a>
+    <a href="https://apinet.cloud" target="_blank" class="btn-secondary">Get an APINET key</a>
   </div>
 </div>
 
 <!-- STRIP -->
 <div class="strip">
-  <span>💬 Мульти-модельный чат</span>
+  <span>💬 Multi-model chat</span>
   <span>🔍 Deep Research</span>
-  <span>📧 AI-почта</span>
-  <span>🗓 Календарь</span>
+  <span>📧 AI Email</span>
+  <span>🗓 Calendar</span>
   <span>🖼 Image Editor</span>
-  <span>🎙 Голос</span>
-  <span>📂 Личные документы</span>
+  <span>🎙 Voice</span>
+  <span>📂 Personal Docs</span>
 </div>
 
 <!-- FEATURES GRID -->
 <section>
-  <div class="section-label reveal">Возможности</div>
-  <h2 class="section-title reveal">Всё что нужно — уже внутри</h2>
-  <p class="section-sub reveal">Odysseus объединяет инструменты, которые раньше требовали отдельных сервисов и подписок.</p>
+  <div class="section-label reveal">Features</div>
+  <h2 class="section-title reveal">Everything you need, already inside</h2>
+  <p class="section-sub reveal">Odysseus combines tools that used to require separate services and subscriptions.</p>
 
   <div class="grid reveal">
     <div class="card">
       <div class="card-icon">💬</div>
-      <h3>Мульти-модельный чат</h3>
-      <p>GPT-4o, Claude, Gemini, Llama и любые OpenAI-совместимые модели в одном интерфейсе. Сравнение ответов бок о бок.</p>
+      <h3>Multi-model chat</h3>
+      <p>GPT-4o, Claude, Gemini, Llama and any OpenAI-compatible model in one interface. Compare responses side by side.</p>
     </div>
     <div class="card">
       <div class="card-icon">🔍</div>
       <h3>Deep Research</h3>
-      <p>Агент сам ищет в интернете, анализирует десятки источников и собирает структурированный отчёт с цитатами.</p>
+      <p>An agent searches the web, analyzes dozens of sources and assembles a structured report with citations.</p>
     </div>
     <div class="card">
       <div class="card-icon">🤖</div>
-      <h3>AI-агент с инструментами</h3>
-      <p>Агент выполняет многоступенчатые задачи: запускает код, просматривает веб-страницы, работает с файлами.</p>
+      <h3>AI Agent with tools</h3>
+      <p>The agent handles multi-step tasks: runs code, browses web pages, reads and writes files autonomously.</p>
     </div>
     <div class="card">
       <div class="card-icon">📧</div>
-      <h3>Умная почта</h3>
-      <p>IMAP/SMTP-инбокс с AI-сортировкой, авто-тегами, черновиками от AI и фильтром спама.</p>
+      <h3>Smart email</h3>
+      <p>IMAP/SMTP inbox with AI sorting, auto-tagging, AI-drafted replies and a smart spam filter.</p>
     </div>
     <div class="card">
       <div class="card-icon">🗓</div>
-      <h3>Календарь</h3>
-      <p>Локальный календарь с синхронизацией CalDAV (Nextcloud, Apple, Fastmail). AI помогает планировать.</p>
+      <h3>Calendar</h3>
+      <p>Local calendar with CalDAV sync (Nextcloud, Apple, Fastmail). AI helps you plan and prioritize.</p>
     </div>
     <div class="card">
       <div class="card-icon">📂</div>
-      <h3>Личные документы (RAG)</h3>
-      <p>Загрузите PDF, Word и текстовые файлы — AI будет отвечать на вопросы, опираясь именно на них.</p>
+      <h3>Personal docs (RAG)</h3>
+      <p>Upload PDFs, Word and text files — AI will answer questions grounded in your own documents.</p>
     </div>
     <div class="card">
       <div class="card-icon">🖼</div>
       <h3>AI Image Editor</h3>
-      <p>Инпейнтинг, удаление фона, фильтры — полноценный редактор прямо в браузере.</p>
+      <p>Inpainting, background removal, filters — a full-featured editor right in the browser.</p>
     </div>
     <div class="card">
       <div class="card-icon">🎙</div>
-      <h3>Голосовой ввод и TTS</h3>
-      <p>Диктуйте вопросы и слушайте ответы AI вслух. Работает офлайн с локальными моделями.</p>
+      <h3>Voice input & TTS</h3>
+      <p>Dictate questions and hear AI answers read aloud. Works offline with local models.</p>
     </div>
     <div class="card">
       <div class="card-icon">🧠</div>
-      <h3>Память и навыки</h3>
-      <p>AI запоминает факты о вас между сессиями и накапливает навыки через векторную базу ChromaDB.</p>
+      <h3>Memory & skills</h3>
+      <p>AI remembers facts about you between sessions and builds up skills via a ChromaDB vector store.</p>
     </div>
   </div>
 </section>
 
-<!-- BIG FEATURE 1 -->
+<!-- BIG FEATURE -->
 <div class="big-feature reveal" style="padding-bottom:0">
   <div>
-    <div class="section-label">Главный экран</div>
-    <h2 class="section-title">Чат с любой моделью через один ключ</h2>
-    <p class="section-sub">Ключ APINET открывает доступ к GPT-4o, Claude 3.5, Gemini Flash и десяткам других моделей — без отдельных подписок.</p>
+    <div class="section-label">Main screen</div>
+    <h2 class="section-title">Chat with any model through a single key</h2>
+    <p class="section-sub">Your APINET key unlocks GPT-4o, Claude 3.5, Gemini Flash and dozens of other models — no separate subscriptions needed.</p>
   </div>
   <div class="feature-visual">
     <div class="mock">
@@ -438,14 +431,14 @@
         <div class="mock-dot" style="background:#28c840"></div>
       </div>
       <div class="msg-row">
-        <div class="msg-avatar msg-user">Я</div>
-        <div class="msg-text">Напиши план маркетинга для SaaS-продукта на Q4</div>
+        <div class="msg-avatar msg-user">Me</div>
+        <div class="msg-text">Write a Q4 marketing plan for our SaaS product</div>
       </div>
       <div class="msg-row">
         <div class="msg-avatar msg-ai">AI</div>
         <div class="msg-text dark">
           <strong>Q4 Marketing Plan — SaaS</strong><br>
-          1. Retention campaign (Oct) → снизить churn<br>
+          1. Retention campaign (Oct) → reduce churn<br>
           2. Black Friday deal (Nov) → +30% new MRR<br>
           3. Year-end review content…
         </div>
@@ -465,47 +458,47 @@
   <div class="stats reveal">
     <div>
       <div class="stat-num">50+</div>
-      <div class="stat-label">Моделей через один ключ</div>
+      <div class="stat-label">Models via a single key</div>
     </div>
     <div>
       <div class="stat-num">100%</div>
-      <div class="stat-label">Self-hosted — ваши данные у вас</div>
+      <div class="stat-label">Self-hosted — your data stays yours</div>
     </div>
     <div>
       <div class="stat-num">∞</div>
-      <div class="stat-label">Контекст с векторной памятью</div>
+      <div class="stat-label">Context with vector memory</div>
     </div>
   </div>
 </section>
 
-<!-- HOW -->
+<!-- HOW IT WORKS -->
 <section>
-  <div class="section-label reveal">Как начать</div>
-  <h2 class="section-title reveal">Три шага до запуска</h2>
+  <div class="section-label reveal">How it works</div>
+  <h2 class="section-title reveal">Three steps to get started</h2>
   <div class="steps reveal">
     <div class="step">
-      <div class="step-num">Шаг 01</div>
-      <h3>Получите ключ APINET</h3>
-      <p>Зарегистрируйтесь на <strong>apinet.cloud</strong> и скопируйте ваш API-ключ в личном кабинете.</p>
+      <div class="step-num">Step 01</div>
+      <h3>Get your APINET key</h3>
+      <p>Sign up at <strong>apinet.cloud</strong> and copy your API key from the dashboard.</p>
     </div>
     <div class="step">
-      <div class="step-num">Шаг 02</div>
-      <h3>Войдите в Odysseus</h3>
-      <p>Вставьте ключ на странице входа — никаких паролей и дополнительной регистрации не нужно.</p>
+      <div class="step-num">Step 02</div>
+      <h3>Sign in to Odysseus</h3>
+      <p>Paste your key on the login page — no separate password or registration required.</p>
     </div>
     <div class="step">
-      <div class="step-num">Шаг 03</div>
-      <h3>Начните работать</h3>
-      <p>Чат, ресёрч, почта и остальные инструменты сразу доступны. Всё хранится у вас.</p>
+      <div class="step-num">Step 03</div>
+      <h3>Start working</h3>
+      <p>Chat, research, email and all other tools are immediately available. Everything is stored on your instance.</p>
     </div>
   </div>
 </section>
 
 <!-- CTA -->
 <div class="cta-section reveal">
-  <h2>Готовы попробовать?</h2>
-  <p>Нужен только ключ APINET — и вы уже внутри.</p>
-  <a href="/login" class="btn-white">Открыть Odysseus →</a>
+  <h2>Ready to try it?</h2>
+  <p>All you need is an APINET key — and you're in.</p>
+  <a href="/login" class="btn-white">Open Odysseus →</a>
 </div>
 
 <!-- FOOTER -->
@@ -514,7 +507,7 @@
   <span>
     <a href="https://apinet.cloud" target="_blank">apinet.cloud</a>
     &nbsp;·&nbsp;
-    <a href="/login">Войти</a>
+    <a href="/login">Sign in</a>
   </span>
 </footer>
 
