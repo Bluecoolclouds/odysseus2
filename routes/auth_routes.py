@@ -396,8 +396,8 @@ def setup_auth_routes(auth_manager: AuthManager) -> APIRouter:
         privs = auth_manager.get_privileges(user) or {}
         cap = int(privs.get("max_messages_per_day") or 0)
         from datetime import datetime as _dt, timedelta as _td
-        from core.database import Session as _DbSess, ChatMessage as _Cm
-        db = SessionLocal()
+        from core.database import SessionLocal as _SL, Session as _DbSess, ChatMessage as _Cm
+        db = _SL()
         try:
             since = _dt.utcnow() - _td(days=1)
             msgs = (
