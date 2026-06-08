@@ -29,6 +29,7 @@ DEFAULT_PRIVILEGES = {
     "can_generate_images": True,
     "can_manage_memory": True,
     "max_messages_per_day": 50,
+    "max_tokens_per_month": 1_000_000,
     "allowed_models": [],
 }
 

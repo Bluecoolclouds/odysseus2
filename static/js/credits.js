@@ -8,6 +8,17 @@ function _closeCredits() {
   Modals.unregister(MODAL_ID);
 }
 
+function _fmtTokens(n) {
+  if (n == null) return '∞';
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(n % 1_000_000 === 0 ? 0 : 2) + 'M';
+  if (n >= 1_000) return (n / 1_000).toFixed(n % 1_000 === 0 ? 0 : 1) + 'K';
+  return String(n);
+}
+
+function _fmtUsd(n) {
+  return '$' + n.toFixed(2);
+}
+
 async function _loadContent(root) {
   let data;
   try {
@@ -22,21 +33,19 @@ async function _loadContent(root) {
     return;
   }
 
-  const { username, is_admin, limit, used, remaining, reset_at } = data;
+  const { username, is_admin, limit, used, remaining, reset_at, tokens_per_dollar = 500_000, monthly_budget_usd = 2.0 } = data;
 
-  function fmtReset(iso) {
+  function fmtResetDate(iso) {
     if (!iso) return null;
-    const diff = new Date(iso) - Date.now();
-    if (diff <= 0) return 'скоро';
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    return h > 0 ? `через ${h} ч ${m} мин` : `через ${m} мин`;
+    try {
+      return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+    } catch { return null; }
   }
 
-  function col(pct) {
-    if (pct >= 90) return 'red';
-    if (pct >= 65) return 'yellow';
-    return 'green';
+  function barColor(pct) {
+    if (pct >= 90) return 'var(--red)';
+    if (pct >= 65) return 'var(--warn, #f0ad4e)';
+    return 'var(--green)';
   }
 
   const initial = (username || '?')[0].toUpperCase();
@@ -52,28 +61,30 @@ async function _loadContent(root) {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/></svg>
         Без ограничений
       </div>
-      <div style="font-size:13px;color:var(--fg);opacity:0.5;line-height:1.65;">Ваш аккаунт имеет неограниченное количество сообщений в день.</div>
+      <div style="font-size:13px;color:var(--fg);opacity:0.5;line-height:1.65;">Ваш аккаунт имеет неограниченный лимит токенов.</div>
     `;
   } else {
+    const usedUsd = used / tokens_per_dollar;
     const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
-    const c = col(pct);
-    const colorMap = { green: 'var(--green)', yellow: 'var(--warn, #f0ad4e)', red: 'var(--red)' };
-    const barColor = colorMap[c] || 'var(--green)';
-    const resetStr = fmtReset(reset_at);
+    const bColor = barColor(pct);
+    const resetDateStr = fmtResetDate(reset_at);
 
     statsHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;">
         <div style="background:color-mix(in srgb,var(--fg) 4%,transparent);border:1px solid var(--border);border-radius:7px;padding:12px 10px;text-align:center;">
-          <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--fg);opacity:.38;margin-bottom:6px;">Лимит</div>
-          <div style="font-size:20px;font-weight:700;line-height:1;letter-spacing:-.04em;color:var(--fg);opacity:.5;">${limit}</div>
+          <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--fg);opacity:.38;margin-bottom:6px;">Бюджет</div>
+          <div style="font-size:20px;font-weight:700;line-height:1;letter-spacing:-.03em;color:var(--fg);opacity:.55;">${_fmtUsd(monthly_budget_usd)}</div>
+          <div style="font-size:10px;color:var(--fg);opacity:.3;margin-top:3px;">${_fmtTokens(limit)} токенов</div>
         </div>
         <div style="background:color-mix(in srgb,var(--fg) 4%,transparent);border:1px solid var(--border);border-radius:7px;padding:12px 10px;text-align:center;">
-          <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--fg);opacity:.38;margin-bottom:6px;">Использовано</div>
-          <div style="font-size:24px;font-weight:700;line-height:1;letter-spacing:-.04em;color:${barColor};">${used}</div>
+          <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--fg);opacity:.38;margin-bottom:6px;">Потрачено</div>
+          <div style="font-size:22px;font-weight:700;line-height:1;letter-spacing:-.03em;color:${bColor};">${_fmtUsd(usedUsd)}</div>
+          <div style="font-size:10px;color:var(--fg);opacity:.3;margin-top:3px;">${_fmtTokens(used)} токенов</div>
         </div>
         <div style="background:color-mix(in srgb,var(--fg) 4%,transparent);border:1px solid var(--border);border-radius:7px;padding:12px 10px;text-align:center;">
           <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--fg);opacity:.38;margin-bottom:6px;">Осталось</div>
-          <div style="font-size:24px;font-weight:700;line-height:1;letter-spacing:-.04em;color:${remaining === 0 ? 'var(--red)' : 'var(--green)'};">${remaining}</div>
+          <div style="font-size:22px;font-weight:700;line-height:1;letter-spacing:-.03em;color:${remaining === 0 ? 'var(--red)' : 'var(--green)'};">${_fmtUsd((remaining ?? 0) / tokens_per_dollar)}</div>
+          <div style="font-size:10px;color:var(--fg);opacity:.3;margin-top:3px;">${_fmtTokens(remaining)} токенов</div>
         </div>
       </div>
     `;
@@ -81,13 +92,13 @@ async function _loadContent(root) {
     progressHTML = `
       <div style="margin-bottom:8px;">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;font-size:12px;color:var(--fg);opacity:.55;">
-          <span>Использование за сутки</span>
-          <span style="font-weight:700;opacity:1;color:${barColor};">${pct}%</span>
+          <span>Использование за месяц</span>
+          <span style="font-weight:700;opacity:1;color:${bColor};">${pct}%</span>
         </div>
         <div style="height:6px;background:color-mix(in srgb,var(--fg) 8%,transparent);border-radius:99px;overflow:hidden;">
-          <div id="credits-pbar" style="height:100%;border-radius:99px;background:${barColor};width:0%;transition:width .6s cubic-bezier(.4,0,.2,1);"></div>
+          <div id="credits-pbar" style="height:100%;border-radius:99px;background:${bColor};width:0%;transition:width .6s cubic-bezier(.4,0,.2,1);"></div>
         </div>
-        <div style="font-size:11px;color:var(--fg);opacity:.35;margin-top:5px;">${used} из ${limit} сообщений за последние 24 часа</div>
+        <div style="font-size:11px;color:var(--fg);opacity:.35;margin-top:5px;">${_fmtTokens(used)} из ${_fmtTokens(limit)} токенов в этом месяце</div>
       </div>
     `;
 
@@ -95,9 +106,9 @@ async function _loadContent(root) {
       <div style="height:1px;background:var(--border);margin:16px 0;"></div>
       <div style="display:flex;align-items:center;gap:7px;background:color-mix(in srgb,var(--fg) 4%,transparent);border:1px solid var(--border);border-radius:7px;padding:10px 13px;font-size:12px;color:var(--fg);opacity:.6;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        ${resetStr
-          ? `Лимит обновится <strong style="color:var(--fg);opacity:1;font-weight:600;">${resetStr}</strong> — отсчёт идёт от первого сообщения`
-          : `Лимит обновляется через <strong style="color:var(--fg);opacity:1;font-weight:600;">24 часа</strong> после первого сообщения дня`}
+        ${resetDateStr
+          ? `Лимит обновится <strong style="color:var(--fg);opacity:1;font-weight:600;">${resetDateStr}</strong>`
+          : 'Лимит обновляется каждое 1-е число месяца'}
       </div>
     `;
 
@@ -125,8 +136,10 @@ async function _loadContent(root) {
     <div style="background:color-mix(in srgb,var(--fg) 3%,transparent);border:1px solid var(--border);border-radius:8px;padding:18px;">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--fg);opacity:.4;margin-bottom:12px;">Как работает лимит</div>
       <div style="font-size:13px;color:var(--fg);opacity:.5;line-height:1.65;">
-        Каждое отправленное сообщение засчитывается в лимит на 24 часа. Лимит обновляется скользящим окном —
-        не в полночь, а через 24 часа после <em style="font-style:normal;font-weight:600;opacity:1;color:var(--fg);">первого</em> сообщения дня. Администратор может изменить лимит для вашего аккаунта.
+        Каждому пользователю выделяется <strong style="opacity:1;color:var(--fg);">$2 в месяц</strong> —
+        это <strong style="opacity:1;color:var(--fg);">1&nbsp;000&nbsp;000 токенов</strong> (500&nbsp;000 токенов = $1).
+        Лимит обновляется в начале каждого календарного месяца. Токены расходуются на запросы к языковым моделям:
+        чем длиннее контекст и ответ — тем больше токенов.
       </div>
     </div>
   `;

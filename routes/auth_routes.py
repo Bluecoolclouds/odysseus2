@@ -389,39 +389,55 @@ def setup_auth_routes(auth_manager: AuthManager) -> APIRouter:
 
     @router.get("/usage")
     async def get_usage(request: Request):
-        """Return the current user's daily message usage stats."""
+        """Return the current user's monthly token usage stats."""
         user = _get_current_user(request)
         if not user:
             raise HTTPException(401, "Not authenticated")
+        is_admin = auth_manager.is_admin(user)
         privs = auth_manager.get_privileges(user) or {}
-        cap = int(privs.get("max_messages_per_day") or 0)
-        from datetime import datetime as _dt, timedelta as _td
-        from core.database import SessionLocal as _SL, Session as _DbSess, ChatMessage as _Cm
+        token_cap = int(privs.get("max_tokens_per_month") or 0)
+
+        import calendar as _cal
+        from datetime import datetime as _dt
+        from core.database import SessionLocal as _SL
+        from sqlalchemy import text as _text
+
+        _now = _dt.utcnow()
+        _month_start = _now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        _last_day = _cal.monthrange(_now.year, _now.month)[1]
+        reset_at = _dt(_now.year, _now.month, _last_day, 23, 59, 59).isoformat() + "Z"
+
         db = _SL()
         try:
-            since = _dt.utcnow() - _td(days=1)
-            msgs = (
-                db.query(_Cm.timestamp)
-                .join(_DbSess, _Cm.session_id == _DbSess.id)
-                .filter(_DbSess.owner == user,
-                        _Cm.role == "user",
-                        _Cm.timestamp >= since)
-                .order_by(_Cm.timestamp.asc())
-                .all()
-            )
+            row = db.execute(
+                _text(
+                    "SELECT COALESCE(SUM(CAST(json_extract(cm.metadata,'$.input_tokens') AS INTEGER)),0)"
+                    " + COALESCE(SUM(CAST(json_extract(cm.metadata,'$.output_tokens') AS INTEGER)),0)"
+                    " FROM chat_messages cm"
+                    " JOIN sessions s ON cm.session_id = s.id"
+                    " WHERE s.owner = :owner AND cm.role = 'assistant' AND cm.timestamp >= :ms"
+                ),
+                {"owner": user, "ms": _month_start},
+            ).fetchone()
+            used_tokens = int(row[0]) if row and row[0] else 0
         finally:
             db.close()
-        used = len(msgs)
-        remaining = max(0, cap - used) if cap > 0 else None
-        reset_at = None
-        if msgs:
-            oldest = msgs[0][0]
-            reset_at = (oldest + _td(days=1)).isoformat() + "Z"
+
+        if is_admin or token_cap == 0:
+            limit = None
+            remaining = None
+        else:
+            limit = token_cap
+            remaining = max(0, token_cap - used_tokens)
+
         return {
             "username": user,
-            "is_admin": auth_manager.is_admin(user),
-            "limit": cap if cap > 0 else None,
-            "used": used,
+            "is_admin": is_admin,
+            "quota_type": "tokens",
+            "tokens_per_dollar": 500_000,
+            "monthly_budget_usd": 2.0,
+            "limit": limit,
+            "used": used_tokens,
             "remaining": remaining,
             "reset_at": reset_at,
         }

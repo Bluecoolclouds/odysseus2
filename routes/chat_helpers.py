@@ -93,25 +93,49 @@ def _enforce_chat_privileges(request, sess) -> None:
         raise HTTPException(403, f"Your account is not allowed to use model '{sess.model}'.")
 
     cap = int(privs.get("max_messages_per_day") or 0)
-    if cap <= 0:
-        return
+    if cap > 0:
+        from datetime import datetime as _dt, timedelta as _td
+        from core.database import Session as _DbSess, ChatMessage as _Cm
+        db = SessionLocal()
+        try:
+            count = (
+                db.query(_Cm)
+                .join(_DbSess, _Cm.session_id == _DbSess.id)
+                .filter(_DbSess.owner == user,
+                        _Cm.role == "user",
+                        _Cm.timestamp >= _dt.utcnow() - _td(days=1))
+                .count()
+            )
+        finally:
+            db.close()
+        if count >= cap:
+            raise HTTPException(429, f"Daily message limit reached ({cap}). Try again in 24 hours.")
 
-    from datetime import datetime as _dt, timedelta as _td
-    from core.database import Session as _DbSess, ChatMessage as _Cm
-    db = SessionLocal()
-    try:
-        count = (
-            db.query(_Cm)
-            .join(_DbSess, _Cm.session_id == _DbSess.id)
-            .filter(_DbSess.owner == user,
-                    _Cm.role == "user",
-                    _Cm.timestamp >= _dt.utcnow() - _td(days=1))
-            .count()
-        )
-    finally:
-        db.close()
-    if count >= cap:
-        raise HTTPException(429, f"Daily message limit reached ({cap}). Try again in 24 hours.")
+    token_cap = int(privs.get("max_tokens_per_month") or 0)
+    if token_cap > 0:
+        from datetime import datetime as _dt2
+        from sqlalchemy import text as _text
+        _month_start = _dt2.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        _db2 = SessionLocal()
+        try:
+            _row = _db2.execute(
+                _text(
+                    "SELECT COALESCE(SUM(CAST(json_extract(cm.metadata,'$.input_tokens') AS INTEGER)),0)"
+                    " + COALESCE(SUM(CAST(json_extract(cm.metadata,'$.output_tokens') AS INTEGER)),0)"
+                    " FROM chat_messages cm"
+                    " JOIN sessions s ON cm.session_id = s.id"
+                    " WHERE s.owner = :owner AND cm.role = 'assistant' AND cm.timestamp >= :ms"
+                ),
+                {"owner": user, "ms": _month_start},
+            ).fetchone()
+            _used = int(_row[0]) if _row and _row[0] else 0
+        finally:
+            _db2.close()
+        if _used >= token_cap:
+            raise HTTPException(
+                429,
+                f"Monthly token limit reached ({token_cap:,} tokens). Your quota resets at the start of next month.",
+            )
 
 
 def needs_auto_name(name: str) -> bool:
