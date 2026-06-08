@@ -182,90 +182,11 @@ def setup_auth_routes(auth_manager: AuthManager) -> APIRouter:
         if len(body.username.strip()) < 1:
             raise HTTPException(400, "Username is required")
 
-        APINET_BASE_URL = "https://apinet.cloud/v1"
-        api_key = body.api_key.strip()
-        if not api_key:
-            raise HTTPException(400, "API key is required. Get one at apinet.cloud")
-
-        # Validate the API key against apinet.cloud
-        import httpx as _httpx
-        try:
-            async with _httpx.AsyncClient(timeout=8.0) as _client:
-                _resp = await _client.get(
-                    f"{APINET_BASE_URL}/models",
-                    headers={"Authorization": f"Bearer {api_key}"},
-                )
-            if _resp.status_code == 401 or _resp.status_code == 403:
-                raise HTTPException(400, "Invalid API key. Please check your key at apinet.cloud")
-            if not _resp.is_success:
-                raise HTTPException(400, f"Could not verify API key (status {_resp.status_code}). Try again later.")
-        except _httpx.TimeoutException:
-            raise HTTPException(400, "Could not reach apinet.cloud to verify key. Try again later.")
-        except HTTPException:
-            raise
-        except Exception as _e:
-            logger.warning(f"API key validation error: {_e}")
-            raise HTTPException(400, "Could not verify API key. Try again later.")
-
         ok = await asyncio.to_thread(auth_manager.create_user, body.username, body.password, is_admin=False)
         if not ok:
             raise HTTPException(409, "Username already taken")
 
-        # Create a personal LLM endpoint for this user pointing to apinet.cloud
-        try:
-            import uuid as _uuid
-            import json as _json
-            from core.database import SessionLocal as _SL, ModelEndpoint as _ME
-            from routes.prefs_routes import _load_for_user, _save_for_user
-
-            _ep_id = str(_uuid.uuid4())[:8]
-            _username = body.username.strip().lower()
-
-            # Fetch available models to cache them
-            _model_ids = []
-            try:
-                async with _httpx.AsyncClient(timeout=8.0) as _mc:
-                    _mr = await _mc.get(
-                        f"{APINET_BASE_URL}/models",
-                        headers={"Authorization": f"Bearer {api_key}"},
-                    )
-                if _mr.is_success:
-                    _mdata = _mr.json()
-                    _model_ids = [m.get("id") for m in (_mdata.get("data") or []) if m.get("id")]
-            except Exception:
-                pass
-
-            _db = _SL()
-            try:
-                _ep = _ME(
-                    id=_ep_id,
-                    name="APINet.cloud",
-                    base_url=APINET_BASE_URL,
-                    api_key=api_key,
-                    is_enabled=True,
-                    model_type="llm",
-                    cached_models=_json.dumps(_model_ids) if _model_ids else None,
-                    owner=_username,
-                )
-                _db.add(_ep)
-                _db.commit()
-            finally:
-                _db.close()
-
-            # Set this endpoint as the user's default
-            _user_prefs = _load_for_user(_username)
-            _user_prefs["default_endpoint_id"] = _ep_id
-            if _model_ids:
-                # Pick first chat-capable model
-                _chat_model = next(
-                    (m for m in _model_ids if not any(x in m.lower() for x in ("embed", "tts", "whisper", "dall-e", "image"))),
-                    _model_ids[0]
-                )
-                _user_prefs["default_model"] = _chat_model
-            _save_for_user(_username, _user_prefs)
-        except Exception as _ex:
-            logger.warning(f"Failed to create endpoint for new user {body.username}: {_ex}")
-
+        logger.info(f"New user registered: {body.username.strip().lower()} (uses shared endpoint)")
         return {"ok": True, "message": "Account created"}
 
     @router.post("/login-apinet")

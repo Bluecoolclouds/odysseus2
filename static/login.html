@@ -436,7 +436,7 @@
       loginTabs.style.display = 'none';
       passwordFields.style.display = '';
       confirmGroup.style.display = 'block';
-      apiKeyGroup.style.display = 'block';
+      apiKeyGroup.style.display = 'none';
       modelGroup.style.display = 'none';
       apinetLoginGroup.style.display = 'none';
       submitBtn.innerHTML = '<span style="position:relative;top:1px;">Create Account</span>';
@@ -540,17 +540,7 @@
       const endpoint = mode === 'setup' ? '/api/auth/setup' : '/api/auth/signup';
       const signupBody = { username, password };
       if (mode === 'signup') {
-        const apiKey = document.getElementById('apiKey').value.trim();
-        if (!apiKey) {
-          errEl.textContent = 'API key is required. Get one at apinet.cloud';
-          errEl.style.display = 'block';
-          submitBtn.disabled = false;
-          document.getElementById('apiKey').focus();
-          return;
-        }
-        signupBody.api_key = apiKey;
-        // Show verifying state
-        submitBtn.innerHTML = '<span class="login-spinner" aria-hidden="true"></span> Verifying key…';
+        submitBtn.innerHTML = '<span class="login-spinner" aria-hidden="true"></span> Создание аккаунта…';
       }
       if (mode === 'setup') {
         const apiKey = document.getElementById('apiKey').value.trim();
