@@ -3445,6 +3445,7 @@ function startOdysseusApp() {
 
   // Rail tool buttons — delegate to sidebar tool buttons
   const _railToolMap = {
+    'rail-credits':   'tool-credits-btn',
     'rail-compare':   'tool-compare-btn',
     'rail-research':  'tool-research-btn',
     'rail-cookbook':   'tool-cookbook-btn',
