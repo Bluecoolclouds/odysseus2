@@ -787,6 +787,10 @@ async def teaser_en_page(request: Request):
 async def serve_login(request: Request):
     return _serve_html_with_nonce(request, abs_join(BASE_DIR, "static/login.html"))
 
+@app.get("/credits")
+async def serve_credits(request: Request):
+    return _serve_html_with_nonce(request, abs_join(BASE_DIR, "static/credits.html"))
+
 @app.get("/api/version")
 async def get_version():
     from core.constants import APP_VERSION

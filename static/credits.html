@@ -280,7 +280,7 @@
   try {
     const res = await fetch('/api/auth/usage', { credentials: 'same-origin' });
     if (res.status === 401) {
-      window.location.replace('/login.html');
+      window.location.replace('/login');
       return;
     }
     if (!res.ok) throw new Error('Ошибка сервера');
