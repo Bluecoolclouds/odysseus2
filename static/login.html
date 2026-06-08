@@ -470,9 +470,15 @@
       return;
     }
     signupAllowed = !!data.signup_enabled;
+    const _params = new URLSearchParams(window.location.search);
+    const _wantSignup = _params.get('signup') === '1' || _params.get('mode') === 'signup';
+    const _wantPassword = _params.get('tab') === 'password' || _wantSignup;
     if (!data.configured) {
       setMode('setup');
+    } else if (_wantSignup && signupAllowed) {
+      setMode('signup');
     } else {
+      if (_wantPassword) setLoginTab('password');
       setMode('login');
     }
   } catch (e) {
