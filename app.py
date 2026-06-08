@@ -34,6 +34,17 @@ from dotenv import load_dotenv
 # is silently ignored and the user is unexpectedly forced to log in (issue #142).
 # utf-8-sig reads plain UTF-8 (no BOM) identically, so this is safe everywhere.
 load_dotenv(encoding="utf-8-sig")
+
+# Replit injects a PostgreSQL DATABASE_URL for its managed Helium DB, but
+# Odysseus uses SQLite. Ensure the SQLite URL is always used, regardless of
+# what the host environment injects.
+_db_url = os.environ.get("DATABASE_URL", "")
+if _db_url and not _db_url.startswith("sqlite"):
+    import logging as _logging
+    _logging.getLogger(__name__).info(
+        "Overriding host DATABASE_URL (%s…) with SQLite for Odysseus.", _db_url[:20]
+    )
+    os.environ["DATABASE_URL"] = "sqlite:///./data/app.db"
 import uuid
 
 import asyncio
