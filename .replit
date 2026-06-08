@@ -37,7 +37,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "DATABASE_URL=sqlite:///./data/app.db python -m uvicorn app:app --host 0.0.0.0 --port 5000"
+args = "DATABASE_URL=sqlite:///./data/app.db ODYSSEUS_SKIP_ADMIN_PROMPT=1 ALLOWED_ORIGINS=* python -m uvicorn app:app --host 0.0.0.0 --port 5000"
 waitForPort = 5000
 
 [[ports]]
