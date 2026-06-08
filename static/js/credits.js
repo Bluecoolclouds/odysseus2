@@ -47,8 +47,8 @@ const PAID_PLANS = [
   {
     id: 'starter', name: 'Стартовый', desc: 'Для редкого использования ИИ',
     tokens: 5_000_000, pm: 12.9, py: 9.9,
-    iconBg: 'rgba(249,115,22,.18)', iconColor: '#f97316',
-    iconSvg: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+    iconBg: 'rgba(249,115,22,.15)', iconColor: '#f97316',
+    iconSvg: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
     models: [
       { name: 'DeepSeek V3', msgs: '~3 500 сообщений' },
       { name: 'Claude Opus 4', msgs: '~200 сообщений' },
@@ -61,9 +61,10 @@ const PAID_PLANS = [
   {
     id: 'pro', name: 'Премиум', desc: 'Для профессионалов, часто использующих ИИ',
     popular: true,
+    badgeBg: 'linear-gradient(90deg,#7c3aed 0%,#a855f7 50%,#7c3aed 100%)',
     tokens: 15_000_000, pm: 24.9, py: 19.9,
-    iconBg: 'rgba(168,85,247,.18)', iconColor: '#a855f7',
-    iconSvg: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+    iconBg: 'rgba(168,85,247,.15)', iconColor: '#a855f7',
+    iconSvg: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
     models: [
       { name: 'DeepSeek V3', msgs: '~10 600 сообщений' },
       { name: 'Claude Opus 4', msgs: '~500 сообщений' },
@@ -76,8 +77,8 @@ const PAID_PLANS = [
   {
     id: 'max', name: 'Максимум', desc: 'Для активных пользователей с комплексными задачами',
     tokens: 35_000_000, pm: 49.9, py: 39.9,
-    iconBg: 'rgba(245,158,11,.18)', iconColor: '#f59e0b',
-    iconSvg: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/><circle cx="12" cy="12" r="3"/></svg>',
+    iconBg: 'rgba(245,158,11,.15)', iconColor: '#f59e0b',
+    iconSvg: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>`,
     models: [
       { name: 'DeepSeek V3', msgs: '~24 800 сообщений' },
       { name: 'Claude Opus 4', msgs: '~1 300 сообщений' },
@@ -223,9 +224,13 @@ function _renderSuccess(root, plan, yearly, total, onBack) {
 function _renderPlans(root, { onBack, modalId } = {}) {
   let yearly = false;
 
+  function check(color) {
+    return `<svg class="cm-p3-item-check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.6" stroke-linecap="round" opacity=".7"><polyline points="20 6 9 17 4 12"/></svg>`;
+  }
+
   function render() {
     root.innerHTML = `
-      <div class="cm-plans-hdr" style="margin-bottom:16px;">
+      <div class="cm-plans-hdr" style="margin-bottom:18px;">
         ${onBack ? `<button class="cm-back" id="plans-back"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>` : ''}
         <span class="cm-plans-ttl">Планы подписки</span>
         <div class="cm-seg">
@@ -237,9 +242,10 @@ function _renderPlans(root, { onBack, modalId } = {}) {
       <div class="cm-p3-grid">
         ${PAID_PLANS.map(p => {
           const price = yearly ? p.py : p.pm;
+          const ck = check(p.iconColor);
           return `
             <div class="cm-p3 ${p.popular ? 'popular' : ''}">
-              ${p.popular ? `<div class="cm-p3-top-badge">Самый популярный</div>` : ''}
+              ${p.popular ? `<div class="cm-p3-top-badge" style="background:${p.badgeBg};">✦ Самый популярный</div>` : ''}
               <div class="cm-p3-body">
                 <div class="cm-p3-icon" style="background:${p.iconBg};color:${p.iconColor};">${p.iconSvg}</div>
                 <div class="cm-p3-name">${p.name}</div>
@@ -250,40 +256,36 @@ function _renderPlans(root, { onBack, modalId } = {}) {
                   <span class="cm-p3-period">/ в месяц</span>
                 </div>
                 <button class="cm-p3-cta ${p.popular?'primary':''}" data-plan="${p.id}">Обновить</button>
+                <div class="cm-p3-divider"></div>
 
                 <div class="cm-p3-section-title">Вычислительные кредиты</div>
-                <div class="cm-p3-credits-val">${(p.tokens/1_000_000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',')},000,000 / в месяц</div>
+                <div class="cm-p3-credits-val" style="color:${p.iconColor};">${p.tokens.toLocaleString('en-US')} / мес</div>
                 ${p.models.map(m => `
-                  <div class="cm-p3-item">
-                    ${CHECK}
+                  <div class="cm-p3-item">${ck}
                     <div class="cm-p3-item-wrap">
                       <div class="cm-p3-item-label">${m.name}</div>
                       <div class="cm-p3-item-sub">${m.msgs}</div>
                     </div>
                   </div>`).join('')}
-                <div class="cm-p3-item">
-                  ${CHECK}
+                <div class="cm-p3-item">${ck}
                   <div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Больше моделей в сравнении планов</div></div>
                 </div>
 
                 <div class="cm-p3-hr"></div>
                 <div class="cm-p3-section-title">Файлы и база знаний</div>
-                <div class="cm-p3-item">
-                  ${CHECK}
+                <div class="cm-p3-item">${ck}
                   <div class="cm-p3-item-wrap">
-                    <div class="cm-p3-item-label">Используйте файлы и базы знаний в диалогах</div>
-                    <div class="cm-p3-item-sub">PDF · MD · DOC · XLS · PPT и другие форматы</div>
+                    <div class="cm-p3-item-label">Файлы и базы знаний в диалогах</div>
+                    <div class="cm-p3-item-sub">PDF · MD · DOC · XLS · PPT и другие</div>
                   </div>
                 </div>
-                <div class="cm-p3-item">
-                  ${CHECK}
+                <div class="cm-p3-item">${ck}
                   <div class="cm-p3-item-wrap">
                     <div class="cm-p3-item-label">Хранилище файлов</div>
                     <div class="cm-p3-item-sub">${p.storage}</div>
                   </div>
                 </div>
-                <div class="cm-p3-item">
-                  ${CHECK}
+                <div class="cm-p3-item">${ck}
                   <div class="cm-p3-item-wrap">
                     <div class="cm-p3-item-label">Векторное хранилище</div>
                     <div class="cm-p3-item-sub">${p.vector}</div>
@@ -292,23 +294,23 @@ function _renderPlans(root, { onBack, modalId } = {}) {
 
                 <div class="cm-p3-hr"></div>
                 <div class="cm-p3-section-title">Сервис моделей</div>
-                <div class="cm-p3-item">${CHECK}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Собственный API популярных моделей</div></div></div>
-                <div class="cm-p3-item">${CHECK}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Неограниченные запросы сообщений</div></div></div>
+                <div class="cm-p3-item">${ck}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Собственный API популярных моделей</div></div></div>
+                <div class="cm-p3-item">${ck}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Неограниченные запросы сообщений</div></div></div>
 
                 <div class="cm-p3-hr"></div>
                 <div class="cm-p3-section-title">Облачный сервис</div>
-                <div class="cm-p3-item">${CHECK}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Неограниченная история чатов</div></div></div>
-                <div class="cm-p3-item">${CHECK}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Глобальная синхронизация в облаке</div></div></div>
+                <div class="cm-p3-item">${ck}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Неограниченная история чатов</div></div></div>
+                <div class="cm-p3-item">${ck}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Глобальная синхронизация в облаке</div></div></div>
 
                 <div class="cm-p3-hr"></div>
                 <div class="cm-p3-section-title">Премиум-функции</div>
-                <div class="cm-p3-item">${CHECK}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Маркет агентов</div></div></div>
-                <div class="cm-p3-item">${CHECK}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Эксклюзивные премиум-плагины</div></div></div>
-                <div class="cm-p3-item">${CHECK}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Умный веб-поиск</div></div></div>
+                <div class="cm-p3-item">${ck}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Маркет агентов</div></div></div>
+                <div class="cm-p3-item">${ck}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Эксклюзивные премиум-плагины</div></div></div>
+                <div class="cm-p3-item">${ck}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">Умный веб-поиск</div></div></div>
 
                 <div class="cm-p3-hr"></div>
                 <div class="cm-p3-section-title">Поддержка</div>
-                <div class="cm-p3-item">${CHECK}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">${p.support}</div></div></div>
+                <div class="cm-p3-item">${ck}<div class="cm-p3-item-wrap"><div class="cm-p3-item-label">${p.support}</div></div></div>
               </div>
             </div>
           `;
@@ -491,7 +493,7 @@ export async function openPlans() {
   if (Modals.toggle(PLANS_ID)) return;
   if (document.getElementById(PLANS_ID)) return;
 
-  const modal = _createShell({ id: PLANS_ID, title: 'Планы подписки', width: 860 });
+  const modal = _createShell({ id: PLANS_ID, title: 'Планы подписки', width: 1020 });
   document.body.appendChild(modal);
 
   Modals.register(PLANS_ID, { sidebarBtnId: 'tool-plans-btn', closeFn: _closePlans, restoreFn: () => {} });
