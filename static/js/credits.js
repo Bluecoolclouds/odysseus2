@@ -243,6 +243,7 @@ function _closeCredits() {
 
 export async function openCredits() {
   if (Modals.toggle(MODAL_ID)) return;
+  if (document.getElementById(MODAL_ID)) return;
 
   const modal = _createShell({ id: MODAL_ID, title: 'Кредиты', width: 480, sidebarBtnId: 'tool-credits-btn' });
   document.body.appendChild(modal);
@@ -268,6 +269,7 @@ function _closePlans() {
 
 export async function openPlans() {
   if (Modals.toggle(PLANS_ID)) return;
+  if (document.getElementById(PLANS_ID)) return;
 
   const modal = _createShell({ id: PLANS_ID, title: 'Планы подписки', width: 520, sidebarBtnId: 'tool-plans-btn' });
   document.body.appendChild(modal);
