@@ -99,6 +99,14 @@ async function _loadContent(root) {
     }, 80);
   }
 
+  const packages = [
+    { label: '10M',  tokens: 10_000_000 },
+    { label: '20M',  tokens: 20_000_000 },
+    { label: '30M',  tokens: 30_000_000 },
+    { label: '50M',  tokens: 50_000_000 },
+    { label: '100M', tokens: 100_000_000 },
+  ];
+
   root.innerHTML = `
     <div style="background:color-mix(in srgb,var(--fg) 3%,transparent);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
@@ -111,6 +119,20 @@ async function _loadContent(root) {
       <div style="height:1px;background:var(--border);margin-bottom:16px;"></div>
       ${body}
     </div>
+    <div style="background:color-mix(in srgb,var(--fg) 3%,transparent);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px;">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--fg);opacity:.35;margin-bottom:12px;">Выберите пакет</div>
+      <div id="credits-pkgs" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;">
+        ${packages.map((p, i) => `
+          <button data-pkg="${i}" style="min-width:68px;padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:color-mix(in srgb,var(--fg) 4%,transparent);color:var(--fg);font-size:13px;font-weight:600;cursor:pointer;transition:border-color .15s,background .15s;opacity:.75;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity=this.dataset.sel?'1':'.75'">
+            ${p.label}
+          </button>`).join('')}
+      </div>
+      <div id="credits-pkg-detail" style="font-size:12px;color:var(--fg);opacity:.4;min-height:18px;margin-bottom:12px;"></div>
+      <button id="credits-buy-btn" disabled style="width:100%;padding:9px 0;border-radius:7px;border:none;background:color-mix(in srgb,var(--fg) 10%,transparent);color:var(--fg);font-size:13px;font-weight:600;cursor:not-allowed;opacity:.35;transition:background .15s,opacity .15s;">
+        Пополнить
+      </button>
+      <div id="credits-buy-msg" style="display:none;margin-top:10px;font-size:12px;color:var(--fg);opacity:.5;text-align:center;line-height:1.6;"></div>
+    </div>
     <div style="background:color-mix(in srgb,var(--fg) 3%,transparent);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--fg);opacity:.35;margin-bottom:10px;">Как работает</div>
       <div style="font-size:12.5px;color:var(--fg);opacity:.45;line-height:1.7;">
@@ -121,6 +143,49 @@ async function _loadContent(root) {
       </div>
     </div>
   `;
+
+  let selectedPkg = null;
+
+  root.querySelectorAll('[data-pkg]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      root.querySelectorAll('[data-pkg]').forEach(b => {
+        b.style.borderColor = 'var(--border)';
+        b.style.background = 'color-mix(in srgb,var(--fg) 4%,transparent)';
+        b.style.color = 'var(--fg)';
+        b.style.opacity = '.75';
+        delete b.dataset.sel;
+      });
+      btn.style.borderColor = 'var(--red)';
+      btn.style.background = 'color-mix(in srgb,var(--red) 12%,transparent)';
+      btn.style.color = 'var(--red)';
+      btn.style.opacity = '1';
+      btn.dataset.sel = '1';
+
+      const i = parseInt(btn.dataset.pkg);
+      selectedPkg = packages[i];
+
+      const detail = root.querySelector('#credits-pkg-detail');
+      detail.textContent = `${_fmtNum(selectedPkg.tokens)} кредитов`;
+
+      const buyBtn = root.querySelector('#credits-buy-btn');
+      buyBtn.disabled = false;
+      buyBtn.style.background = 'color-mix(in srgb,var(--red) 18%,transparent)';
+      buyBtn.style.borderColor = 'color-mix(in srgb,var(--red) 35%,transparent)';
+      buyBtn.style.border = '1px solid color-mix(in srgb,var(--red) 35%,transparent)';
+      buyBtn.style.color = 'var(--red)';
+      buyBtn.style.cursor = 'pointer';
+      buyBtn.style.opacity = '1';
+
+      root.querySelector('#credits-buy-msg').style.display = 'none';
+    });
+  });
+
+  root.querySelector('#credits-buy-btn').addEventListener('click', () => {
+    if (!selectedPkg) return;
+    const msg = root.querySelector('#credits-buy-msg');
+    msg.style.display = 'block';
+    msg.textContent = `Для пополнения на ${selectedPkg.label} кредитов обратитесь к администратору.`;
+  });
 }
 
 export async function openCredits() {
