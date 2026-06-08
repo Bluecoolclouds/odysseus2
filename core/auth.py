@@ -28,7 +28,7 @@ DEFAULT_PRIVILEGES = {
     "can_use_research": True,
     "can_generate_images": True,
     "can_manage_memory": True,
-    "max_messages_per_day": 0,
+    "max_messages_per_day": 50,
     "allowed_models": [],
 }
 

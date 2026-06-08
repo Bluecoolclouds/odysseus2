@@ -845,6 +845,44 @@ async def startup_event():
     if os.getenv("OPEN_SIGNUP", "true").lower() != "false":
         auth_manager.signup_enabled = True
         logger.info("Open signup enabled (users can register with apinet.cloud API key)")
+
+    # Ensure shared apinet.cloud endpoint exists (owner=None → visible to all users).
+    # Uses APINET_API_KEY secret. Safe to call on every restart — skips if already present.
+    _apinet_key = os.getenv("APINET_API_KEY", "").strip()
+    if _apinet_key:
+        try:
+            import uuid as _uuid, json as _json
+            from core.database import SessionLocal as _SL, ModelEndpoint as _ME
+            _adb = _SL()
+            try:
+                _APINET_BASE = "https://api.apinet.cloud/v1"
+                _exists = _adb.query(_ME).filter(
+                    _ME.base_url == _APINET_BASE,
+                    _ME.owner.is_(None),
+                ).first()
+                if not _exists:
+                    _ep = _ME(
+                        id=str(_uuid.uuid4())[:8],
+                        name="APINet.cloud (Shared)",
+                        base_url=_APINET_BASE,
+                        api_key=_apinet_key,
+                        is_enabled=True,
+                        model_type="llm",
+                        owner=None,
+                    )
+                    _adb.add(_ep)
+                    _adb.commit()
+                    logger.info("Created shared apinet.cloud endpoint")
+                else:
+                    if _exists.api_key != _apinet_key:
+                        _exists.api_key = _apinet_key
+                        _adb.commit()
+                        logger.info("Updated shared apinet.cloud endpoint key")
+            finally:
+                _adb.close()
+        except Exception as _e:
+            logger.warning(f"Failed to create shared apinet.cloud endpoint: {_e}")
+
     webhook_manager.set_loop(asyncio.get_running_loop())
     # Wipe any leftover incognito sessions from previous process — they're
     # ephemeral by design and must not survive a restart.

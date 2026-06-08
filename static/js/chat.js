@@ -902,6 +902,52 @@ import createResearchSynapse from './researchSynapse.js';
       box.appendChild(holder);
       uiModule.scrollHistory();
 
+      const _showDailyLimitModal = () => {
+        const existing = document.getElementById('daily-limit-modal');
+        if (existing) existing.remove();
+        const overlay = document.createElement('div');
+        overlay.id = 'daily-limit-modal';
+        overlay.style.cssText = `
+          position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);
+          display:flex;align-items:center;justify-content:center;z-index:9999;
+          animation:fadeIn .2s ease;
+        `;
+        overlay.innerHTML = `
+          <div style="
+            background:var(--bg, #1a1a2e);border:1px solid var(--border, #333);
+            border-radius:16px;padding:32px 28px;max-width:380px;width:90%;
+            box-shadow:0 24px 64px rgba(0,0,0,0.5);text-align:center;
+            animation:slideUp .25s ease;
+          ">
+            <div style="font-size:52px;margin-bottom:16px;">💬</div>
+            <div style="font-size:20px;font-weight:700;margin-bottom:10px;color:var(--fg,#fff);">
+              Дневной лимит исчерпан
+            </div>
+            <div style="font-size:14px;color:var(--fg-muted,#999);margin-bottom:24px;line-height:1.6;">
+              Вы использовали все сообщения на сегодня.<br>
+              Лимит обновится через 24 часа.
+            </div>
+            <div style="
+              background:var(--bg2,#222);border-radius:10px;padding:14px;
+              margin-bottom:24px;font-size:13px;color:var(--fg-muted,#aaa);
+            ">
+              ⏰ Приходите завтра — лимит сбросится автоматически
+            </div>
+            <button id="limit-modal-close" style="
+              width:100%;padding:12px;border-radius:8px;border:none;cursor:pointer;
+              background:var(--accent,#7c6ef5);color:#fff;font-size:15px;font-weight:600;
+              transition:opacity .15s;
+            ">Понятно</button>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+        const closeBtn = overlay.querySelector('#limit-modal-close');
+        const close = () => { overlay.style.animation = 'fadeOut .15s ease forwards'; setTimeout(() => overlay.remove(), 150); };
+        closeBtn.addEventListener('click', close);
+        overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+        document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); } });
+      };
+
       const enableResearchBtn = () => {
         if (!researchBtn) return;
         researchBtn.disabled = false;
@@ -932,6 +978,13 @@ import createResearchSynapse from './researchSynapse.js';
           // Session was deleted (e.g. by AI) — reload and go to welcome
           holder.remove();
           if (sessionModule) await sessionModule.loadSessions();
+          return;
+        }
+        if (res.status === 429) {
+          // Daily message limit reached — show beautiful limit modal
+          holder.remove();
+          _showDailyLimitModal();
+          enableResearchBtn();
           return;
         }
         let errText = `Error ${res.status}`;
