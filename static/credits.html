@@ -3,211 +3,254 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Лимит сообщений — Odysseus</title>
+  <title>Кредиты — Odysseus</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 4L16 22L6 22Z' fill='%23e06c75'/%3E%3Cpath d='M16 8L16 22L24 22Z' fill='%23e06c75' opacity='0.6'/%3E%3Cpath d='M4 24Q10 20 16 24Q22 28 28 24' stroke='%23e06c75' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <!-- Apply saved theme immediately to avoid flash -->
+  <script>
+  (function(){
+    try {
+      var t = JSON.parse(localStorage.getItem('odysseus-theme'));
+      if (t && t.colors) {
+        var s = document.documentElement.style;
+        var c = t.colors;
+        s.setProperty('--bg', c.bg);
+        s.setProperty('--fg', c.fg);
+        s.setProperty('--panel', c.panel);
+        s.setProperty('--border', c.border);
+        if (c.red) s.setProperty('--red', c.red);
+        if (c.advanced && c.advanced.brandColor) s.setProperty('--brand-color', c.advanced.brandColor);
+        var ac = c.red || '#e06c75';
+        var fav = document.querySelector("link[rel='icon']");
+        if (fav) fav.href = 'data:image/svg+xml,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M16 4L16 22L6 22Z' fill='" + ac + "'/><path d='M16 8L16 22L24 22Z' fill='" + ac + "' opacity='0.6'/><path d='M4 24Q10 20 16 24Q22 28 28 24' stroke='" + ac + "' stroke-width='2.5' fill='none' stroke-linecap='round'/></svg>");
+        if (t.font) {
+          var fm = {mono:"'Fira Code', monospace", sans:"system-ui, -apple-system, 'Segoe UI', sans-serif", serif:"Georgia, 'Times New Roman', serif"};
+          s.setProperty('--font-family', fm[t.font] || ("'" + t.font.replace(/'/g,'') + "', 'Inter', sans-serif"));
+        }
+      }
+    } catch(e){}
+  })();
+  </script>
+  <!-- Inter font — same as main app -->
+  <style>
+    @font-face { font-family: 'Inter'; font-weight: 400; font-style: normal; font-display: swap; src: url('/static/fonts/Inter-Regular.woff2') format('woff2'); }
+    @font-face { font-family: 'Inter'; font-weight: 500; font-style: normal; font-display: swap; src: url('/static/fonts/Inter-Medium.woff2') format('woff2'); }
+    @font-face { font-family: 'Inter'; font-weight: 600; font-style: normal; font-display: swap; src: url('/static/fonts/Inter-SemiBold.woff2') format('woff2'); }
+    @font-face { font-family: 'Inter'; font-weight: 700; font-style: normal; font-display: swap; src: url('/static/fonts/Inter-Regular.woff2') format('woff2'); }
+  </style>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #141414;
-      --bg2: #1c1c1c;
-      --bg3: #242424;
-      --border: rgba(255,255,255,0.08);
-      --fg: #e8e8e8;
-      --fg2: rgba(232,232,232,0.55);
-      --accent: #e05a5a;
-      --accent-dim: rgba(224,90,90,0.15);
-      --green: #4caf82;
-      --green-dim: rgba(76,175,130,0.15);
-      --yellow: #d4a843;
-      --yellow-dim: rgba(212,168,67,0.15);
-      --radius: 10px;
+      --bg:     #282c34;
+      --fg:     #9cdef2;
+      --panel:  #111;
+      --border: #355a66;
+      --red:    #e06c75;
+      --green:  #50fa7b;
+      --warn:   #f0ad4e;
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--font-family);
       background: var(--bg);
       color: var(--fg);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px 80px;
+      padding: 0 16px 80px;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
     }
 
+    /* ── Page header ── */
     .page-header {
       width: 100%;
-      max-width: 600px;
+      max-width: 560px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 32px;
-      padding-top: 8px;
+      gap: 10px;
+      padding: 20px 0 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
     }
 
     .back-btn {
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       background: none;
       border: 1px solid var(--border);
-      color: var(--fg2);
-      font-size: 13px;
-      padding: 6px 12px;
-      border-radius: 7px;
+      color: var(--fg);
+      opacity: 0.55;
+      font-size: 12px;
+      font-family: inherit;
+      padding: 5px 10px;
+      border-radius: 6px;
       cursor: pointer;
       text-decoration: none;
-      transition: color 0.15s, border-color 0.15s;
+      transition: opacity 0.15s, border-color 0.15s;
+      flex-shrink: 0;
     }
-    .back-btn:hover { color: var(--fg); border-color: rgba(255,255,255,0.2); }
+    .back-btn:hover { opacity: 0.9; border-color: var(--fg); }
 
     .page-title {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      color: var(--fg);
     }
 
+    /* ── Cards ── */
     .card {
-      background: var(--bg2);
+      background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
+      border-radius: 8px;
+      padding: 20px;
       width: 100%;
-      max-width: 600px;
-      margin-bottom: 16px;
+      max-width: 560px;
+      margin-bottom: 12px;
     }
 
     .card-title {
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 10px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--fg2);
-      margin-bottom: 18px;
+      letter-spacing: 0.09em;
+      color: var(--fg);
+      opacity: 0.4;
+      margin-bottom: 16px;
     }
 
+    /* ── User row ── */
     .user-row {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
     .avatar {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background: var(--accent-dim);
-      border: 1px solid rgba(224,90,90,0.3);
+      background: color-mix(in srgb, var(--red) 18%, transparent);
+      border: 1px solid color-mix(in srgb, var(--red) 35%, transparent);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
-      color: var(--accent);
+      color: var(--red);
       flex-shrink: 0;
       text-transform: uppercase;
     }
 
-    .user-info-name {
-      font-size: 16px;
-      font-weight: 600;
-    }
-    .user-info-role {
-      font-size: 12px;
-      color: var(--fg2);
-      margin-top: 2px;
-    }
+    .user-name  { font-size: 14px; font-weight: 600; color: var(--fg); line-height: 1.3; }
+    .user-role  { font-size: 12px; color: var(--fg); opacity: 0.45; margin-top: 1px; }
 
     .divider {
       height: 1px;
       background: var(--border);
-      margin: 18px 0;
+      margin: 16px 0;
     }
 
+    /* ── Stats grid ── */
     .stat-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 8px;
+      margin-bottom: 18px;
     }
 
     .stat-box {
-      background: var(--bg3);
+      background: color-mix(in srgb, var(--fg) 4%, transparent);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 12px;
+      border-radius: 7px;
+      padding: 12px 10px;
       text-align: center;
     }
     .stat-label {
-      font-size: 10px;
-      color: var(--fg2);
+      font-size: 9.5px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.07em;
+      color: var(--fg);
+      opacity: 0.38;
       margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .stat-value {
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 700;
       line-height: 1;
+      letter-spacing: -0.04em;
     }
-    .stat-value.green { color: var(--green); }
-    .stat-value.yellow { color: var(--yellow); }
-    .stat-value.red { color: var(--accent); }
-    .stat-value.dim { color: var(--fg2); font-size: 20px; }
+    .stat-value.dim    { color: var(--fg); opacity: 0.5; font-size: 20px; }
+    .stat-value.green  { color: var(--green); }
+    .stat-value.yellow { color: var(--warn); }
+    .stat-value.red    { color: var(--red); }
 
-    .progress-wrap {
-      margin-bottom: 8px;
-    }
+    /* ── Progress bar ── */
+    .progress-wrap { margin-bottom: 8px; }
     .progress-header {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      margin-bottom: 8px;
-      font-size: 13px;
+      margin-bottom: 7px;
+      font-size: 12px;
+      color: var(--fg);
+      opacity: 0.55;
     }
-    .progress-label { color: var(--fg2); }
-    .progress-count { font-weight: 600; font-size: 13px; }
+    .progress-pct { font-weight: 700; opacity: 1; }
 
     .progress-track {
-      height: 8px;
-      background: var(--bg3);
+      height: 6px;
+      background: color-mix(in srgb, var(--fg) 8%, transparent);
       border-radius: 99px;
       overflow: hidden;
     }
     .progress-fill {
       height: 100%;
       border-radius: 99px;
-      background: var(--green);
       transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
     }
-    .progress-fill.yellow { background: var(--yellow); }
-    .progress-fill.red { background: var(--accent); }
+    .progress-fill.green  { background: var(--green); }
+    .progress-fill.yellow { background: var(--warn); }
+    .progress-fill.red    { background: var(--red); }
 
     .progress-hint {
       font-size: 11px;
-      color: var(--fg2);
-      margin-top: 6px;
+      color: var(--fg);
+      opacity: 0.35;
+      margin-top: 5px;
     }
 
+    /* ── Reset row ── */
     .reset-row {
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: var(--bg3);
+      gap: 7px;
+      background: color-mix(in srgb, var(--fg) 4%, transparent);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 14px;
-      font-size: 13px;
-      color: var(--fg2);
+      border-radius: 7px;
+      padding: 10px 13px;
+      font-size: 12px;
+      color: var(--fg);
+      opacity: 0.6;
     }
-    .reset-row svg { flex-shrink: 0; opacity: 0.6; }
-    .reset-row strong { color: var(--fg); }
+    .reset-row svg { flex-shrink: 0; }
+    .reset-row strong { color: var(--fg); opacity: 1; font-weight: 600; }
 
+    /* ── Unlimited ── */
     .unlimited-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: var(--green-dim);
-      border: 1px solid rgba(76,175,130,0.25);
+      background: color-mix(in srgb, var(--green) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--green) 28%, transparent);
       color: var(--green);
       border-radius: 99px;
       padding: 5px 14px;
@@ -216,42 +259,42 @@
       margin-bottom: 12px;
     }
 
+    /* ── Info card ── */
     .info-card {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 14px 16px;
       font-size: 13px;
-      color: var(--fg2);
-      line-height: 1.6;
+      color: var(--fg);
+      opacity: 0.5;
+      line-height: 1.65;
     }
-    .info-card a { color: var(--accent); text-decoration: none; }
-    .info-card a:hover { text-decoration: underline; }
+    .info-card em { font-style: normal; font-weight: 600; opacity: 1; color: var(--fg); }
 
+    /* ── Loading / Error ── */
     .loading {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 12px;
-      padding: 48px 0;
-      color: var(--fg2);
-      font-size: 14px;
+      padding: 56px 0;
+      color: var(--fg);
+      opacity: 0.4;
+      font-size: 13px;
     }
     .spinner {
-      width: 28px;
-      height: 28px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
+      width: 26px;
+      height: 26px;
+      border: 2px solid color-mix(in srgb, var(--fg) 15%, transparent);
+      border-top-color: var(--red);
       border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      animation: spin 0.75s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .error-msg {
       text-align: center;
-      padding: 40px 0;
-      color: var(--accent);
-      font-size: 14px;
+      padding: 48px 0;
+      color: var(--red);
+      font-size: 13px;
+      line-height: 1.6;
     }
   </style>
 </head>
@@ -259,10 +302,10 @@
 
 <div class="page-header">
   <a href="/" class="back-btn">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     Назад
   </a>
-  <div class="page-title">Лимит сообщений</div>
+  <div class="page-title">Кредиты</div>
 </div>
 
 <div id="content">
@@ -279,38 +322,32 @@
   let data;
   try {
     const res = await fetch('/api/auth/usage', { credentials: 'same-origin' });
-    if (res.status === 401) {
-      window.location.replace('/login');
-      return;
-    }
-    if (!res.ok) throw new Error('Ошибка сервера');
+    if (res.status === 401) { window.location.replace('/'); return; }
+    if (!res.ok) throw new Error('Ошибка сервера ' + res.status);
     data = await res.json();
   } catch (e) {
-    root.innerHTML = `<div class="error-msg">Не удалось загрузить данные.<br><small>${e.message}</small></div>`;
+    root.innerHTML = `<div class="error-msg">Не удалось загрузить данные.<br><small style="opacity:0.6">${e.message}</small></div>`;
     return;
   }
 
   const { username, is_admin, limit, used, remaining, reset_at } = data;
 
-  function fmtReset(isoStr) {
-    if (!isoStr) return null;
-    const d = new Date(isoStr);
-    const now = new Date();
-    const diffMs = d - now;
-    if (diffMs <= 0) return 'скоро';
-    const h = Math.floor(diffMs / 3600000);
-    const m = Math.floor((diffMs % 3600000) / 60000);
-    if (h > 0) return `через ${h} ч ${m} мин`;
-    return `через ${m} мин`;
+  function fmtReset(iso) {
+    if (!iso) return null;
+    const diff = new Date(iso) - Date.now();
+    if (diff <= 0) return 'скоро';
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return h > 0 ? `через ${h} ч ${m} мин` : `через ${m} мин`;
   }
 
-  function usedColor(pct) {
+  function col(pct) {
     if (pct >= 90) return 'red';
     if (pct >= 65) return 'yellow';
     return 'green';
   }
 
-  const initial = username ? username[0] : '?';
+  const initial = (username || '?')[0].toUpperCase();
   const roleLabel = is_admin ? 'Администратор' : 'Пользователь';
 
   let statsHTML = '';
@@ -323,13 +360,11 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/></svg>
         Без ограничений
       </div>
-      <div class="info-card">
-        Ваш аккаунт имеет неограниченное количество сообщений в день.
-      </div>
+      <div class="info-card">Ваш аккаунт имеет неограниченное количество сообщений в день.</div>
     `;
   } else {
     const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
-    const col = usedColor(pct);
+    const c = col(pct);
     const resetStr = fmtReset(reset_at);
 
     statsHTML = `
@@ -340,7 +375,7 @@
         </div>
         <div class="stat-box">
           <div class="stat-label">Использовано</div>
-          <div class="stat-value ${col}">${used}</div>
+          <div class="stat-value ${c}">${used}</div>
         </div>
         <div class="stat-box">
           <div class="stat-label">Осталось</div>
@@ -352,29 +387,31 @@
     progressHTML = `
       <div class="progress-wrap">
         <div class="progress-header">
-          <span class="progress-label">Использование за сутки</span>
-          <span class="progress-count ${col}">${pct}%</span>
+          <span>Использование за сутки</span>
+          <span class="progress-pct ${c}">${pct}%</span>
         </div>
         <div class="progress-track">
-          <div class="progress-fill ${col}" style="width: ${pct}%"></div>
+          <div class="progress-fill ${c}" id="pbar" style="width:0%"></div>
         </div>
         <div class="progress-hint">${used} из ${limit} сообщений за последние 24 часа</div>
       </div>
     `;
 
-    resetHTML = resetStr ? `
+    resetHTML = `
       <div class="divider"></div>
       <div class="reset-row">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Лимит обновится <strong>${resetStr}</strong> — отсчёт идёт от первого сообщения
-      </div>
-    ` : `
-      <div class="divider"></div>
-      <div class="reset-row">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Лимит обновится через <strong>24 часа</strong> после первого сообщения дня
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        ${resetStr
+          ? `Лимит обновится <strong>${resetStr}</strong> — отсчёт идёт от первого сообщения`
+          : `Лимит обновляется через <strong>24 часа</strong> после первого сообщения дня`}
       </div>
     `;
+
+    // Animate bar after render
+    setTimeout(() => {
+      const bar = document.getElementById('pbar');
+      if (bar) bar.style.width = pct + '%';
+    }, 60);
   }
 
   root.innerHTML = `
@@ -383,8 +420,8 @@
       <div class="user-row">
         <div class="avatar">${initial}</div>
         <div>
-          <div class="user-info-name">${username}</div>
-          <div class="user-info-role">${roleLabel}</div>
+          <div class="user-name">${username}</div>
+          <div class="user-role">${roleLabel}</div>
         </div>
       </div>
       <div class="divider"></div>
@@ -396,22 +433,11 @@
     <div class="card">
       <div class="card-title">Как работает лимит</div>
       <div class="info-card">
-        Каждое отправленное сообщение засчитывается в лимит на 24 часа. Лимит обновляется скользящим окном — не в полночь, а через 24 часа после <em>первого</em> сообщения дня. Администратор может изменить лимит для вашего аккаунта.
+        Каждое отправленное сообщение засчитывается в лимит на 24 часа. Лимит обновляется скользящим окном —
+        не в полночь, а через 24 часа после <em>первого</em> сообщения дня. Администратор может изменить лимит для вашего аккаунта.
       </div>
     </div>
   `;
-
-  // Animate progress bar
-  requestAnimationFrame(() => {
-    const fill = document.querySelector('.progress-fill');
-    if (fill) {
-      fill.style.width = '0%';
-      requestAnimationFrame(() => {
-        const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
-        fill.style.width = pct + '%';
-      });
-    }
-  });
 })();
 </script>
 
