@@ -267,6 +267,59 @@
   .cm-spinner-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px 0;color:var(--fg);opacity:.35;font-size:13px;}
   .cm-spinner{width:22px;height:22px;border:2px solid color-mix(in srgb,var(--fg) 12%,transparent);border-top-color:var(--red);border-radius:50%;animation:cm-spin .7s linear infinite;}
   @keyframes cm-spin{to{transform:rotate(360deg);}}
+
+  /* ── Checkout / Payment panel ───────────────────────────────────────── */
+  .cp-order{background:color-mix(in srgb,var(--fg) 4%,transparent);border:1px solid var(--border);border-radius:9px;padding:14px 15px;margin-bottom:10px;}
+  .cp-order-row{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .cp-order-name{font-size:14px;font-weight:700;color:var(--fg);}
+  .cp-order-badge{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:99px;background:color-mix(in srgb,var(--red) 18%,transparent);color:var(--red);text-transform:uppercase;letter-spacing:.06em;}
+  .cp-order-tokens{font-size:11.5px;color:var(--fg);opacity:.4;margin-top:3px;}
+  .cp-order-price{font-size:22px;font-weight:700;letter-spacing:-.04em;color:var(--fg);text-align:right;line-height:1;}
+  .cp-order-period{font-size:11px;color:var(--fg);opacity:.4;text-align:right;margin-top:2px;}
+  .cp-order-divider{height:1px;background:var(--border);margin:11px 0;}
+  .cp-order-line{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--fg);opacity:.45;margin-bottom:5px;}
+  .cp-order-line:last-child{margin-bottom:0;}
+  .cp-order-line.total{opacity:1;font-weight:600;font-size:13px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+  .cp-order-discount{color:var(--red);opacity:1;}
+  /* payment method tabs */
+  .cp-methods{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px;}
+  .cp-method{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 8px;border-radius:8px;border:1px solid var(--border);background:color-mix(in srgb,var(--fg) 3%,transparent);cursor:pointer;transition:border-color .15s,background .15s;font-size:11px;font-weight:600;color:var(--fg);opacity:.55;}
+  .cp-method:hover{opacity:.8;}
+  .cp-method.active{border-color:color-mix(in srgb,var(--red) 50%,transparent);background:color-mix(in srgb,var(--red) 8%,transparent);color:var(--fg);opacity:1;}
+  .cp-method-icon{font-size:18px;line-height:1;}
+  /* form */
+  .cp-field{margin-bottom:10px;}
+  .cp-field:last-child{margin-bottom:0;}
+  .cp-label{font-size:10.5px;font-weight:600;color:var(--fg);opacity:.45;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+  .cp-input{width:100%;padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:color-mix(in srgb,var(--fg) 5%,transparent);color:var(--fg);font-size:13.5px;font-family:inherit;outline:none;transition:border-color .15s;box-sizing:border-box;}
+  .cp-input::placeholder{color:var(--fg);opacity:.25;}
+  .cp-input:focus{border-color:color-mix(in srgb,var(--fg) 35%,transparent);}
+  .cp-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .cp-card-wrap{position:relative;}
+  .cp-card-brand{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:var(--fg);opacity:.3;pointer-events:none;}
+  /* promo */
+  .cp-promo-toggle{font-size:12px;color:var(--fg);opacity:.4;cursor:pointer;text-decoration:underline;text-decoration-style:dotted;margin-bottom:10px;display:inline-block;}
+  .cp-promo-toggle:hover{opacity:.7;}
+  .cp-promo-row{display:flex;gap:7px;margin-bottom:10px;}
+  .cp-promo-row .cp-input{flex:1;margin:0;}
+  .cp-promo-apply{padding:9px 14px;border-radius:7px;border:1px solid var(--border);background:color-mix(in srgb,var(--fg) 6%,transparent);color:var(--fg);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .15s;opacity:.7;}
+  .cp-promo-apply:hover{opacity:1;}
+  /* submit */
+  .cp-submit{width:100%;padding:11px 0;border-radius:8px;border:none;background:var(--red);color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s;letter-spacing:.01em;margin-top:4px;}
+  .cp-submit:hover{opacity:.88;}
+  .cp-submit:active{opacity:.75;}
+  .cp-submit:disabled{opacity:.35;cursor:not-allowed;}
+  .cp-secure{display:flex;align-items:center;justify-content:center;gap:5px;font-size:11px;color:var(--fg);opacity:.28;margin-top:9px;}
+  /* sbp / crypto panels */
+  .cp-alt-panel{display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 0 10px;}
+  .cp-qr{width:120px;height:120px;background:color-mix(in srgb,var(--fg) 6%,transparent);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;}
+  .cp-alt-hint{font-size:12px;color:var(--fg);opacity:.4;text-align:center;line-height:1.65;max-width:260px;}
+  .cp-wallet{font-size:11px;font-family:monospace;color:var(--fg);opacity:.5;background:color-mix(in srgb,var(--fg) 5%,transparent);border:1px solid var(--border);border-radius:6px;padding:7px 11px;word-break:break-all;text-align:center;cursor:pointer;}
+  /* success */
+  .cp-success{display:flex;flex-direction:column;align-items:center;gap:14px;padding:32px 16px;text-align:center;}
+  .cp-success-icon{width:52px;height:52px;border-radius:50%;background:color-mix(in srgb,var(--red) 14%,transparent);border:1px solid color-mix(in srgb,var(--red) 30%,transparent);display:flex;align-items:center;justify-content:center;}
+  .cp-success-title{font-size:16px;font-weight:700;color:var(--fg);}
+  .cp-success-sub{font-size:13px;color:var(--fg);opacity:.45;line-height:1.6;}
   </style>
   <!-- KaTeX CSS is loaded with media="print" so it doesn't block render,
        then flipped to "all" via JS after load. Mermaid init runs once the

@@ -1,7 +1,7 @@
 import * as Modals from './modalManager.js';
 
-const MODAL_ID  = 'credits-modal';
-const PLANS_ID  = 'plans-modal';
+const MODAL_ID = 'credits-modal';
+const PLANS_ID = 'plans-modal';
 
 function _fmtNum(n) {
   if (n == null) return '∞';
@@ -16,7 +16,7 @@ function _fmtShort(n) {
 
 // ── Shared modal shell ─────────────────────────────────────────────── //
 
-function _createShell({ id, title, width = 480, sidebarBtnId }) {
+function _createShell({ id, title, width = 480 }) {
   const modal = document.createElement('div');
   modal.id = id;
   modal.className = 'modal';
@@ -25,7 +25,7 @@ function _createShell({ id, title, width = 480, sidebarBtnId }) {
     <div class="modal-content" style="background:var(--panel);border:1px solid var(--border);border-radius:10px;width:min(${width}px,95vw);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 48px rgba(0,0,0,.55);overflow:hidden;">
       <div id="${id}-drag" style="display:flex;align-items:center;padding:12px 14px 11px;border-bottom:1px solid var(--border);gap:8px;flex-shrink:0;cursor:move;user-select:none;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.35;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span style="font-size:13px;font-weight:600;color:var(--fg);opacity:.75;margin-right:auto;">${title}</span>
+        <span id="${id}-title" style="font-size:13px;font-weight:600;color:var(--fg);opacity:.75;margin-right:auto;">${title}</span>
         <button id="${id}-min" class="modal-minimize-btn" title="Свернуть" aria-label="Свернуть">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"><line x1="6" y1="18" x2="18" y2="18"/></svg>
         </button>
@@ -41,7 +41,7 @@ function _createShell({ id, title, width = 480, sidebarBtnId }) {
   return modal;
 }
 
-// ── Plans panel (reusable — used by both credits modal and plans modal) //
+// ── Plans ──────────────────────────────────────────────────────────── //
 
 const PLANS = [
   { id:'free',  name:'Старт',    desc:'Для личного использования', tokens_month:1_000_000,  pm:0,   py:0,   current:true,
@@ -56,7 +56,221 @@ const PLANS = [
 
 const CHECK_SVG = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`;
 
-function _renderPlans(root, { onBack } = {}) {
+// ── Payment / Checkout panel ────────────────────────────────────────── //
+
+function _renderPayment(root, plan, yearly, { onBack }) {
+  const price = yearly ? plan.py : plan.pm;
+  const origPrice = plan.pm;
+  const period = yearly ? 'год' : 'месяц';
+  const saving = yearly ? origPrice * 12 - price * 12 : 0;
+
+  let activeMethod = 'card';
+  let promoOpen = false;
+  let promoApplied = false;
+
+  function _formatCard(val) {
+    return val.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
+  }
+  function _formatExpiry(val) {
+    let v = val.replace(/\D/g, '').slice(0, 4);
+    if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2);
+    return v;
+  }
+  function _cardBrand(num) {
+    const n = num.replace(/\s/g, '');
+    if (/^4/.test(n)) return 'VISA';
+    if (/^5[1-5]/.test(n) || /^2[2-7]/.test(n)) return 'MC';
+    if (/^2200/.test(n) || /^2201/.test(n)) return 'МИР';
+    return '';
+  }
+
+  function render() {
+    const total = promoApplied ? Math.round(price * 0.9) : price;
+
+    root.innerHTML = `
+      <div class="cm-plans-hdr" style="margin-bottom:14px;">
+        <button class="cm-back" id="pay-back" title="Назад">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <span class="cm-plans-ttl">Оформление подписки</span>
+      </div>
+
+      <div class="cp-order">
+        <div class="cp-order-row">
+          <div>
+            <div class="cp-order-name">${plan.name} ${plan.popular ? '<span class="cp-order-badge">Популярный</span>' : ''}</div>
+            <div class="cp-order-tokens">${_fmtShort(plan.tokens_month)} токенов / мес</div>
+          </div>
+          <div>
+            <div class="cp-order-price">$${price}</div>
+            <div class="cp-order-period">за ${period}</div>
+          </div>
+        </div>
+        <div class="cp-order-divider"></div>
+        <div class="cp-order-line"><span>Тариф «${plan.name}»</span><span>$${origPrice} / мес</span></div>
+        ${yearly ? `<div class="cp-order-line"><span>Годовая скидка (−20%)</span><span class="cp-order-discount">−$${Math.round(saving / 12)} / мес</span></div>` : ''}
+        ${promoApplied ? `<div class="cp-order-line"><span>Промокод ODYSSEUS10</span><span class="cp-order-discount">−$${Math.round(price * 0.1)}</span></div>` : ''}
+        <div class="cp-order-line total"><span>Итого сейчас</span><span>$${total}</span></div>
+      </div>
+
+      <div class="cm-card" style="margin-bottom:10px;">
+        <div class="cm-sec-label">Способ оплаты</div>
+        <div class="cp-methods">
+          <button class="cp-method ${activeMethod === 'card' ? 'active' : ''}" data-method="card">
+            <span class="cp-method-icon">💳</span>Карта
+          </button>
+          <button class="cp-method ${activeMethod === 'sbp' ? 'active' : ''}" data-method="sbp">
+            <span class="cp-method-icon">⚡</span>СБП
+          </button>
+          <button class="cp-method ${activeMethod === 'crypto' ? 'active' : ''}" data-method="crypto">
+            <span class="cp-method-icon">₿</span>Крипто
+          </button>
+        </div>
+
+        ${activeMethod === 'card' ? `
+          <div class="cp-field">
+            <div class="cp-label">Номер карты</div>
+            <div class="cp-card-wrap">
+              <input class="cp-input" id="cp-cardnum" type="text" inputmode="numeric" placeholder="0000 0000 0000 0000" maxlength="19" autocomplete="cc-number">
+              <span class="cp-card-brand" id="cp-brand"></span>
+            </div>
+          </div>
+          <div class="cp-field">
+            <div class="cp-label">Имя на карте</div>
+            <input class="cp-input" id="cp-name" type="text" placeholder="IVAN PETROV" autocomplete="cc-name" style="text-transform:uppercase;">
+          </div>
+          <div class="cp-row cp-field">
+            <div>
+              <div class="cp-label">Срок действия</div>
+              <input class="cp-input" id="cp-expiry" type="text" inputmode="numeric" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp">
+            </div>
+            <div>
+              <div class="cp-label">CVV / CVC</div>
+              <input class="cp-input" id="cp-cvv" type="password" inputmode="numeric" placeholder="•••" maxlength="4" autocomplete="cc-csc">
+            </div>
+          </div>
+        ` : activeMethod === 'sbp' ? `
+          <div class="cp-alt-panel">
+            <div class="cp-qr">
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="opacity:.2;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/><path d="M14 14h2v2h-2zM16 16h2v2h-2zM18 14h2v2h-2zM14 18h4v2h-4z"/></svg>
+            </div>
+            <div class="cp-alt-hint">Отсканируйте QR-код в приложении банка или перейдите по ссылке для оплаты через СБП.<br>Оплата зачисляется мгновенно.</div>
+          </div>
+        ` : `
+          <div class="cp-alt-panel">
+            <div class="cp-qr">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.2;"><path d="M11.767 19.089c4.924.868 6.14-6.025 1.216-6.894m-1.216 6.894L10.5 21m1.267-1.911-1.267-7.97m0 0c4.926.868 6.14-6.025 1.217-6.894m-1.217 6.894L9.5 3m1.266 7.89L9.5 3M9.5 3H7"/></svg>
+            </div>
+            <div class="cp-alt-hint">Поддерживаемые сети: <strong style="opacity:.7;">USDT (TRC-20)</strong>, Bitcoin, Ethereum.<br>Адрес для пополнения:</div>
+            <div class="cp-wallet" id="cp-wallet-addr" title="Нажмите, чтобы скопировать">TRxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx42</div>
+          </div>
+        `}
+      </div>
+
+      <div class="cm-card" style="margin-bottom:10px;">
+        ${!promoOpen ? `<span class="cp-promo-toggle" id="cp-promo-open">У меня есть промокод</span>` : `
+          <div class="cm-sec-label">Промокод</div>
+          <div class="cp-promo-row">
+            <input class="cp-input" id="cp-promo-input" type="text" placeholder="Введите промокод" value="${promoApplied ? 'ODYSSEUS10' : ''}">
+            <button class="cp-promo-apply" id="cp-promo-btn">${promoApplied ? '✓ Применён' : 'Применить'}</button>
+          </div>
+          ${promoApplied ? `<div style="font-size:12px;color:var(--red);opacity:.8;">Скидка 10% применена</div>` : ''}
+        `}
+      </div>
+
+      <button class="cp-submit" id="cp-pay-btn">
+        Оплатить $${total} / ${yearly ? 'год' : 'мес'}
+      </button>
+      <div class="cp-secure">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        Защищённое соединение · SSL
+      </div>
+    `;
+
+    root.querySelector('#pay-back').addEventListener('click', onBack);
+
+    root.querySelectorAll('.cp-method').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeMethod = btn.dataset.method;
+        render();
+      });
+    });
+
+    if (activeMethod === 'card') {
+      const cardNum = root.querySelector('#cp-cardnum');
+      const brand = root.querySelector('#cp-brand');
+      const expiry = root.querySelector('#cp-expiry');
+      const name = root.querySelector('#cp-name');
+
+      cardNum?.addEventListener('input', () => {
+        const formatted = _formatCard(cardNum.value);
+        cardNum.value = formatted;
+        if (brand) brand.textContent = _cardBrand(formatted);
+      });
+      expiry?.addEventListener('input', () => {
+        const pos = expiry.selectionStart;
+        expiry.value = _formatExpiry(expiry.value);
+        try { expiry.setSelectionRange(pos, pos); } catch {}
+      });
+      name?.addEventListener('input', () => {
+        name.value = name.value.toUpperCase();
+      });
+    }
+
+    if (activeMethod === 'crypto') {
+      root.querySelector('#cp-wallet-addr')?.addEventListener('click', function() {
+        navigator.clipboard?.writeText(this.textContent.trim()).catch(() => {});
+        const orig = this.textContent;
+        this.textContent = 'Скопировано!';
+        setTimeout(() => { this.textContent = orig; }, 1500);
+      });
+    }
+
+    root.querySelector('#cp-promo-open')?.addEventListener('click', () => {
+      promoOpen = true;
+      render();
+      setTimeout(() => root.querySelector('#cp-promo-input')?.focus(), 50);
+    });
+
+    root.querySelector('#cp-promo-btn')?.addEventListener('click', () => {
+      const input = root.querySelector('#cp-promo-input');
+      if (input?.value.trim().toUpperCase() === 'ODYSSEUS10') {
+        promoApplied = true;
+        render();
+      } else if (input) {
+        input.style.borderColor = 'var(--red)';
+        setTimeout(() => { input.style.borderColor = ''; }, 1200);
+      }
+    });
+
+    root.querySelector('#cp-pay-btn')?.addEventListener('click', () => {
+      _renderSuccess(root, plan, yearly, total, onBack);
+    });
+  }
+
+  render();
+}
+
+function _renderSuccess(root, plan, yearly, total, onBack) {
+  root.innerHTML = `
+    <div class="cp-success">
+      <div class="cp-success-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="cp-success-title">Подписка оформлена!</div>
+      <div class="cp-success-sub">
+        Тариф <strong>${plan.name}</strong> активирован.<br>
+        Следующее списание $${total} — через ${yearly ? 'год' : 'месяц'}.
+      </div>
+      <button class="cp-submit" id="cp-done" style="width:auto;padding:10px 32px;margin-top:6px;">Готово</button>
+    </div>
+  `;
+  root.querySelector('#cp-done').addEventListener('click', onBack);
+}
+
+// ── Plans panel ────────────────────────────────────────────────────── //
+
+function _renderPlans(root, { onBack, modalId } = {}) {
   let yearly = false;
 
   function render() {
@@ -99,7 +313,6 @@ function _renderPlans(root, { onBack } = {}) {
           `;
         }).join('')}
       </div>
-      <div class="cm-plans-msg" id="plans-msg"></div>
     `;
 
     if (onBack) root.querySelector('#plans-back')?.addEventListener('click', onBack);
@@ -109,10 +322,20 @@ function _renderPlans(root, { onBack } = {}) {
     root.querySelectorAll('[data-plan]').forEach(btn => {
       if (btn.disabled) return;
       btn.addEventListener('click', () => {
-        const p = PLANS.find(x => x.id === btn.dataset.plan);
-        const msg = root.querySelector('#plans-msg');
-        msg.style.display = 'block';
-        msg.textContent = `Для подключения тарифа «${p.name}» обратитесь к администратору.`;
+        const plan = PLANS.find(x => x.id === btn.dataset.plan);
+        if (!plan) return;
+        const backToPlans = () => {
+          _renderPlans(root, { onBack, modalId });
+          if (modalId) {
+            const t = document.querySelector(`#${modalId}-title`);
+            if (t) t.textContent = 'Планы подписки';
+          }
+        };
+        _renderPayment(root, plan, yearly, { onBack: backToPlans });
+        if (modalId) {
+          const t = document.querySelector(`#${modalId}-title`);
+          if (t) t.textContent = 'Оформление';
+        }
       });
     });
   }
@@ -141,7 +364,7 @@ async function _loadCredits(root, { onPlans }) {
   const roleLabel = is_admin ? 'Администратор' : 'Пользователь';
 
   let resetDate = null;
-  try { resetDate = reset_at ? new Date(reset_at).toLocaleDateString('ru-RU', { day:'numeric', month:'long' }) : null; } catch {}
+  try { resetDate = reset_at ? new Date(reset_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }) : null; } catch {}
 
   let usageBlock = '';
   if (is_admin || limit === null) {
@@ -171,11 +394,11 @@ async function _loadCredits(root, { onPlans }) {
   }
 
   const packages = [
-    { label:'10M',  tokens:10_000_000 },
-    { label:'20M',  tokens:20_000_000 },
-    { label:'30M',  tokens:30_000_000 },
-    { label:'50M',  tokens:50_000_000 },
-    { label:'100M', tokens:100_000_000 },
+    { label: '10M', tokens: 10_000_000 },
+    { label: '20M', tokens: 20_000_000 },
+    { label: '30M', tokens: 30_000_000 },
+    { label: '50M', tokens: 50_000_000 },
+    { label: '100M', tokens: 100_000_000 },
   ];
 
   root.innerHTML = `
@@ -195,12 +418,12 @@ async function _loadCredits(root, { onPlans }) {
       ${usageBlock}
     </div>
     <div class="cm-card">
-      <div class="cm-sec-label">Выберите пакет</div>
+      <div class="cm-sec-label">Пополнить кредиты</div>
       <div class="cm-pkg-row" id="cm-pkgs">
         ${packages.map((p, i) => `<button class="cm-pkg-btn" data-pkg="${i}">${p.label}</button>`).join('')}
       </div>
       <div class="cm-pkg-detail" id="cm-pkg-detail"></div>
-      <button class="cm-action-btn" id="cm-buy" disabled>Пополнить</button>
+      <button class="cm-action-btn" id="cm-buy" disabled>Оплатить</button>
       <div class="cm-action-msg" id="cm-buy-msg"></div>
     </div>
     <div class="cm-card">
@@ -216,8 +439,7 @@ async function _loadCredits(root, { onPlans }) {
     btn.addEventListener('click', () => {
       root.querySelectorAll('.cm-pkg-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const i = parseInt(btn.dataset.pkg);
-      selPkg = packages[i];
+      selPkg = packages[parseInt(btn.dataset.pkg)];
       root.querySelector('#cm-pkg-detail').textContent = _fmtNum(selPkg.tokens) + ' кредитов';
       const bb = root.querySelector('#cm-buy');
       bb.disabled = false;
@@ -228,9 +450,11 @@ async function _loadCredits(root, { onPlans }) {
 
   root.querySelector('#cm-buy').addEventListener('click', () => {
     if (!selPkg) return;
-    const msg = root.querySelector('#cm-buy-msg');
-    msg.style.display = 'block';
-    msg.textContent = `Для пополнения на ${selPkg.label} кредитов обратитесь к администратору.`;
+    const pkgPlan = { id: 'pkg', name: `Пакет ${selPkg.label}`, desc: '', tokens_month: selPkg.tokens, pm: 0, py: 0, feats: [] };
+    pkgPlan.pm = Math.round(selPkg.tokens / 500_000);
+    pkgPlan.py = pkgPlan.pm;
+    const goBack = () => _loadCredits(root, { onPlans });
+    _renderPayment(root, pkgPlan, false, { onBack: goBack });
   });
 }
 
@@ -245,7 +469,7 @@ export async function openCredits() {
   if (Modals.toggle(MODAL_ID)) return;
   if (document.getElementById(MODAL_ID)) return;
 
-  const modal = _createShell({ id: MODAL_ID, title: 'Кредиты', width: 480, sidebarBtnId: 'tool-credits-btn' });
+  const modal = _createShell({ id: MODAL_ID, title: 'Кредиты', width: 480 });
   document.body.appendChild(modal);
 
   Modals.register(MODAL_ID, { sidebarBtnId: 'tool-credits-btn', closeFn: _closeCredits, restoreFn: () => {} });
@@ -256,11 +480,14 @@ export async function openCredits() {
   try { const d = await import('./windowDrag.js'); d?.makeWindowDraggable?.(modal.querySelector('.modal-content')); } catch {}
 
   const body = modal.querySelector(`#${MODAL_ID}-body`);
-  const goPlans = () => _renderPlans(body, { onBack: () => _loadCredits(body, { onPlans: goPlans }) });
+  const goPlans = () => _renderPlans(body, {
+    onBack: () => _loadCredits(body, { onPlans: goPlans }),
+    modalId: MODAL_ID,
+  });
   _loadCredits(body, { onPlans: goPlans });
 }
 
-// ── Plans modal (opened directly from sidebar) ─────────────────────── //
+// ── Plans modal (sidebar) ──────────────────────────────────────────── //
 
 function _closePlans() {
   document.getElementById(PLANS_ID)?.remove();
@@ -271,7 +498,7 @@ export async function openPlans() {
   if (Modals.toggle(PLANS_ID)) return;
   if (document.getElementById(PLANS_ID)) return;
 
-  const modal = _createShell({ id: PLANS_ID, title: 'Планы подписки', width: 520, sidebarBtnId: 'tool-plans-btn' });
+  const modal = _createShell({ id: PLANS_ID, title: 'Планы подписки', width: 520 });
   document.body.appendChild(modal);
 
   Modals.register(PLANS_ID, { sidebarBtnId: 'tool-plans-btn', closeFn: _closePlans, restoreFn: () => {} });
@@ -281,7 +508,7 @@ export async function openPlans() {
 
   try { const d = await import('./windowDrag.js'); d?.makeWindowDraggable?.(modal.querySelector('.modal-content')); } catch {}
 
-  _renderPlans(modal.querySelector(`#${PLANS_ID}-body`));
+  _renderPlans(modal.querySelector(`#${PLANS_ID}-body`), { modalId: PLANS_ID });
 }
 
 // ── Wire up ────────────────────────────────────────────────────────── //
