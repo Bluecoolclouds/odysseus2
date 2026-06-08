@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Лимит сообщений — Odysseus</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #141414;
+      --bg2: #1c1c1c;
+      --bg3: #242424;
+      --border: rgba(255,255,255,0.08);
+      --fg: #e8e8e8;
+      --fg2: rgba(232,232,232,0.55);
+      --accent: #e05a5a;
+      --accent-dim: rgba(224,90,90,0.15);
+      --green: #4caf82;
+      --green-dim: rgba(76,175,130,0.15);
+      --yellow: #d4a843;
+      --yellow-dim: rgba(212,168,67,0.15);
+      --radius: 10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 80px;
+    }
+
+    .page-header {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      padding-top: 8px;
+    }
+
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--fg2);
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .back-btn:hover { color: var(--fg); border-color: rgba(255,255,255,0.2); }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--fg2);
+      margin-bottom: 18px;
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      border: 1px solid rgba(224,90,90,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+
+    .user-info-name {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .user-info-role {
+      font-size: 12px;
+      color: var(--fg2);
+      margin-top: 2px;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 18px 0;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-box {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 12px;
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 10px;
+      color: var(--fg2);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .stat-value.green { color: var(--green); }
+    .stat-value.yellow { color: var(--yellow); }
+    .stat-value.red { color: var(--accent); }
+    .stat-value.dim { color: var(--fg2); font-size: 20px; }
+
+    .progress-wrap {
+      margin-bottom: 8px;
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .progress-label { color: var(--fg2); }
+    .progress-count { font-weight: 600; font-size: 13px; }
+
+    .progress-track {
+      height: 8px;
+      background: var(--bg3);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--green);
+      transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    }
+    .progress-fill.yellow { background: var(--yellow); }
+    .progress-fill.red { background: var(--accent); }
+
+    .progress-hint {
+      font-size: 11px;
+      color: var(--fg2);
+      margin-top: 6px;
+    }
+
+    .reset-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--fg2);
+    }
+    .reset-row svg { flex-shrink: 0; opacity: 0.6; }
+    .reset-row strong { color: var(--fg); }
+
+    .unlimited-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-dim);
+      border: 1px solid rgba(76,175,130,0.25);
+      color: var(--green);
+      border-radius: 99px;
+      padding: 5px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .info-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--fg2);
+      line-height: 1.6;
+    }
+    .info-card a { color: var(--accent); text-decoration: none; }
+    .info-card a:hover { text-decoration: underline; }
+
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 48px 0;
+      color: var(--fg2);
+      font-size: 14px;
+    }
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--accent);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <a href="/" class="back-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Назад
+  </a>
+  <div class="page-title">Лимит сообщений</div>
+</div>
+
+<div id="content">
+  <div class="loading">
+    <div class="spinner"></div>
+    Загрузка…
+  </div>
+</div>
+
+<script>
+(async () => {
+  const root = document.getElementById('content');
+
+  let data;
+  try {
+    const res = await fetch('/api/auth/usage', { credentials: 'same-origin' });
+    if (res.status === 401) {
+      window.location.replace('/login.html');
+      return;
+    }
+    if (!res.ok) throw new Error('Ошибка сервера');
+    data = await res.json();
+  } catch (e) {
+    root.innerHTML = `<div class="error-msg">Не удалось загрузить данные.<br><small>${e.message}</small></div>`;
+    return;
+  }
+
+  const { username, is_admin, limit, used, remaining, reset_at } = data;
+
+  function fmtReset(isoStr) {
+    if (!isoStr) return null;
+    const d = new Date(isoStr);
+    const now = new Date();
+    const diffMs = d - now;
+    if (diffMs <= 0) return 'скоро';
+    const h = Math.floor(diffMs / 3600000);
+    const m = Math.floor((diffMs % 3600000) / 60000);
+    if (h > 0) return `через ${h} ч ${m} мин`;
+    return `через ${m} мин`;
+  }
+
+  function usedColor(pct) {
+    if (pct >= 90) return 'red';
+    if (pct >= 65) return 'yellow';
+    return 'green';
+  }
+
+  const initial = username ? username[0] : '?';
+  const roleLabel = is_admin ? 'Администратор' : 'Пользователь';
+
+  let statsHTML = '';
+  let progressHTML = '';
+  let resetHTML = '';
+
+  if (is_admin || limit === null) {
+    statsHTML = `
+      <div class="unlimited-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.178 8c5.096 0 5.096 8 0 8-5.095 0-7.133-8-12.739-8-4.585 0-4.585 8 0 8 5.606 0 7.644-8 12.74-8z"/></svg>
+        Без ограничений
+      </div>
+      <div class="info-card">
+        Ваш аккаунт имеет неограниченное количество сообщений в день.
+      </div>
+    `;
+  } else {
+    const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+    const col = usedColor(pct);
+    const resetStr = fmtReset(reset_at);
+
+    statsHTML = `
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-label">Лимит</div>
+          <div class="stat-value dim">${limit}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Использовано</div>
+          <div class="stat-value ${col}">${used}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Осталось</div>
+          <div class="stat-value ${remaining === 0 ? 'red' : 'green'}">${remaining}</div>
+        </div>
+      </div>
+    `;
+
+    progressHTML = `
+      <div class="progress-wrap">
+        <div class="progress-header">
+          <span class="progress-label">Использование за сутки</span>
+          <span class="progress-count ${col}">${pct}%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill ${col}" style="width: ${pct}%"></div>
+        </div>
+        <div class="progress-hint">${used} из ${limit} сообщений за последние 24 часа</div>
+      </div>
+    `;
+
+    resetHTML = resetStr ? `
+      <div class="divider"></div>
+      <div class="reset-row">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Лимит обновится <strong>${resetStr}</strong> — отсчёт идёт от первого сообщения
+      </div>
+    ` : `
+      <div class="divider"></div>
+      <div class="reset-row">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Лимит обновится через <strong>24 часа</strong> после первого сообщения дня
+      </div>
+    `;
+  }
+
+  root.innerHTML = `
+    <div class="card">
+      <div class="card-title">Аккаунт</div>
+      <div class="user-row">
+        <div class="avatar">${initial}</div>
+        <div>
+          <div class="user-info-name">${username}</div>
+          <div class="user-info-role">${roleLabel}</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      ${statsHTML}
+      ${progressHTML}
+      ${resetHTML}
+    </div>
+
+    <div class="card">
+      <div class="card-title">Как работает лимит</div>
+      <div class="info-card">
+        Каждое отправленное сообщение засчитывается в лимит на 24 часа. Лимит обновляется скользящим окном — не в полночь, а через 24 часа после <em>первого</em> сообщения дня. Администратор может изменить лимит для вашего аккаунта.
+      </div>
+    </div>
+  `;
+
+  // Animate progress bar
+  requestAnimationFrame(() => {
+    const fill = document.querySelector('.progress-fill');
+    if (fill) {
+      fill.style.width = '0%';
+      requestAnimationFrame(() => {
+        const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+        fill.style.width = pct + '%';
+      });
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

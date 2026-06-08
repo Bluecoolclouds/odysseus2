@@ -387,6 +387,45 @@ def setup_auth_routes(auth_manager: AuthManager) -> APIRouter:
             pass
         return result
 
+    @router.get("/usage")
+    async def get_usage(request: Request):
+        """Return the current user's daily message usage stats."""
+        user = _get_current_user(request)
+        if not user:
+            raise HTTPException(401, "Not authenticated")
+        privs = auth_manager.get_privileges(user) or {}
+        cap = int(privs.get("max_messages_per_day") or 0)
+        from datetime import datetime as _dt, timedelta as _td
+        from core.database import Session as _DbSess, ChatMessage as _Cm
+        db = SessionLocal()
+        try:
+            since = _dt.utcnow() - _td(days=1)
+            msgs = (
+                db.query(_Cm.timestamp)
+                .join(_DbSess, _Cm.session_id == _DbSess.id)
+                .filter(_DbSess.owner == user,
+                        _Cm.role == "user",
+                        _Cm.timestamp >= since)
+                .order_by(_Cm.timestamp.asc())
+                .all()
+            )
+        finally:
+            db.close()
+        used = len(msgs)
+        remaining = max(0, cap - used) if cap > 0 else None
+        reset_at = None
+        if msgs:
+            oldest = msgs[0][0]
+            reset_at = (oldest + _td(days=1)).isoformat() + "Z"
+        return {
+            "username": user,
+            "is_admin": auth_manager.is_admin(user),
+            "limit": cap if cap > 0 else None,
+            "used": used,
+            "remaining": remaining,
+            "reset_at": reset_at,
+        }
+
     @router.post("/change-password")
     async def change_password(body: ChangePasswordRequest, request: Request):
         user = _get_current_user(request)
