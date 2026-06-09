@@ -591,7 +591,7 @@ async function _loadCredits(root, { onPlans }) {
         <div class="cm-stat"><div class="cm-stat-lbl">Использовано</div><div class="cm-stat-val">${_fmtShort(used)}</div><div class="cm-stat-sub">${_fmtNum(used)} токенов</div></div>
         <div class="cm-stat"><div class="cm-stat-lbl">Остаток</div><div class="cm-stat-val">${_fmtShort(remaining)}</div><div class="cm-stat-sub">${resetDate ? 'до ' + resetDate : ''}</div></div>
       </div>
-      <div class="cm-bar-wrap"><div class="cm-bar" style="width:${pct}%;background:${barColor};"></div></div>
+      <div class="cm-bar-track"><div class="cm-bar-fill" style="width:${pct}%;background:${barColor};"></div></div>
     `;
   }
 
