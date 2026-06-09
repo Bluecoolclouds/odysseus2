@@ -291,6 +291,36 @@
   .cm-p3-item-label{font-size:12.5px;color:var(--fg);opacity:.6;line-height:1.45;}
   .cm-p3-item-sub{font-size:11.5px;color:var(--fg);opacity:.32;margin-top:2px;line-height:1.4;}
   .cm-p3-hr{height:1px;background:var(--border);margin:14px 0;}
+  /* ruble price row */
+  .cm-p3-rub{font-size:20px;font-weight:700;color:var(--fg);line-height:1;margin-left:2px;margin-top:4px;}
+  /* plans footer */
+  .cm-p3-footer{display:flex;justify-content:center;padding:16px 0 4px;}
+  .mp-prices-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:color-mix(in srgb,var(--fg) 4%,transparent);color:var(--fg);font-size:12px;font-weight:500;cursor:pointer;opacity:.55;transition:opacity .15s,background .15s;}
+  .mp-prices-btn:hover{opacity:1;background:color-mix(in srgb,var(--fg) 8%,transparent);}
+  /* ── Model Prices panel ─── */
+  .mp-layout{display:flex;gap:28px;padding-top:20px;align-items:flex-start;min-height:400px;}
+  .mp-left{width:220px;flex-shrink:0;}
+  .mp-left-title{font-size:15px;font-weight:700;color:var(--fg);margin:0 0 10px;line-height:1.4;}
+  .mp-left-desc{font-size:12px;color:var(--fg);opacity:.45;line-height:1.7;margin:0 0 14px;}
+  .mp-left-note{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--fg);opacity:.35;line-height:1.5;}
+  .mp-right{flex:1;min-width:0;}
+  .mp-table-wrap{border:1px solid var(--border);border-radius:9px;overflow:hidden;}
+  .mp-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .mp-table thead{position:sticky;top:0;z-index:2;}
+  .mp-th-name,.mp-th-num{padding:9px 12px;background:color-mix(in srgb,var(--fg) 5%,transparent);color:var(--fg);font-size:11px;font-weight:600;opacity:.5;border-bottom:1px solid var(--border);white-space:nowrap;}
+  .mp-th-name{text-align:left;}
+  .mp-th-num{text-align:right;}
+  .mp-th-inner{display:flex;align-items:center;justify-content:flex-end;gap:4px;}
+  .mp-group-row td{padding:10px 12px 4px;background:color-mix(in srgb,var(--fg) 2%,transparent);}
+  .mp-group-label{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--fg);opacity:.35;}
+  .mp-group-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .mp-model-row{border-top:1px solid color-mix(in srgb,var(--border) 50%,transparent);}
+  .mp-model-row:hover{background:color-mix(in srgb,var(--fg) 3%,transparent);}
+  .mp-cell-name{padding:8px 12px;display:flex;align-items:center;gap:7px;}
+  .mp-model-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;opacity:.6;}
+  .mp-model-name{color:var(--fg);opacity:.75;flex:1;min-width:0;}
+  .mp-ctx-badge{font-size:10px;color:var(--fg);opacity:.28;background:color-mix(in srgb,var(--fg) 6%,transparent);padding:1px 5px;border-radius:4px;white-space:nowrap;flex-shrink:0;}
+  .mp-cell-num{padding:8px 12px;text-align:right;color:var(--fg);opacity:.6;font-variant-numeric:tabular-nums;white-space:nowrap;}
   /* spinner */
   .cm-spinner-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px 0;color:var(--fg);opacity:.35;font-size:13px;}
   .cm-spinner{width:22px;height:22px;border:2px solid color-mix(in srgb,var(--fg) 12%,transparent);border-top-color:var(--red);border-radius:50%;animation:cm-spin .7s linear infinite;}

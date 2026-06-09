@@ -13,6 +13,9 @@ function _fmtShort(n) {
   if (n >= 1_000) return Math.round(n / 1_000) + 'K';
   return String(n);
 }
+function _fmtRub(n) {
+  return Math.round(n).toLocaleString('ru-RU') + ' ₽';
+}
 
 // ── Modal shell ────────────────────────────────────────────────────── //
 
@@ -46,14 +49,14 @@ function _createShell({ id, title, width = 480 }) {
 const PAID_PLANS = [
   {
     id: 'starter', name: 'Стартовый', desc: 'Для редкого использования ИИ',
-    tokens: 5_000_000, pm: 12.9, py: 9.9,
+    tokens: 5_000_000, pm: 550, py: 440,
     iconBg: 'rgba(249,115,22,.15)', iconColor: '#f97316',
     iconSvg: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
     models: [
-      { name: 'DeepSeek V3', msgs: '~3 500 сообщений' },
-      { name: 'Claude Opus 4', msgs: '~200 сообщений' },
-      { name: 'GPT-4o',       msgs: '~200 сообщений' },
-      { name: 'Gemini 2 Pro', msgs: '~400 сообщений' },
+      { name: 'DeepSeek V4 Flash', msgs: '~3 500 сообщений' },
+      { name: 'Claude Opus 4.8',   msgs: '~200 сообщений' },
+      { name: 'GPT-5.5',           msgs: '~180 сообщений' },
+      { name: 'Gemini 3.5 Flash',  msgs: '~400 сообщений' },
     ],
     storage: '1.0 GB', vector: '5 000 записей · ≈ 50 MB',
     support: 'Email и форум сообщества',
@@ -62,31 +65,135 @@ const PAID_PLANS = [
     id: 'pro', name: 'Премиум', desc: 'Для профессионалов, часто использующих ИИ',
     popular: true,
     badgeBg: 'linear-gradient(90deg,#7c3aed 0%,#a855f7 50%,#7c3aed 100%)',
-    tokens: 15_000_000, pm: 24.9, py: 19.9,
+    tokens: 15_000_000, pm: 1490, py: 1190,
     iconBg: 'rgba(168,85,247,.15)', iconColor: '#a855f7',
     iconSvg: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
     models: [
-      { name: 'DeepSeek V3', msgs: '~10 600 сообщений' },
-      { name: 'Claude Opus 4', msgs: '~500 сообщений' },
-      { name: 'GPT-4o',       msgs: '~500 сообщений' },
-      { name: 'Gemini 2 Pro', msgs: '~1 200 сообщений' },
+      { name: 'DeepSeek V4 Flash', msgs: '~10 600 сообщений' },
+      { name: 'Claude Opus 4.8',   msgs: '~500 сообщений' },
+      { name: 'GPT-5.5',           msgs: '~500 сообщений' },
+      { name: 'Gemini 3.5 Flash',  msgs: '~1 200 сообщений' },
     ],
     storage: '2.0 GB', vector: '10 000 записей · ≈ 100 MB',
     support: 'Приоритетная поддержка по email',
   },
   {
     id: 'max', name: 'Максимум', desc: 'Для активных пользователей с комплексными задачами',
-    tokens: 35_000_000, pm: 49.9, py: 39.9,
+    tokens: 35_000_000, pm: 4700, py: 3760,
     iconBg: 'rgba(245,158,11,.15)', iconColor: '#f59e0b',
     iconSvg: `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>`,
     models: [
-      { name: 'DeepSeek V3', msgs: '~24 800 сообщений' },
-      { name: 'Claude Opus 4', msgs: '~1 300 сообщений' },
-      { name: 'GPT-4o',       msgs: '~1 100 сообщений' },
-      { name: 'Gemini 2 Pro', msgs: '~2 800 сообщений' },
+      { name: 'DeepSeek V4 Flash', msgs: '~24 800 сообщений' },
+      { name: 'Claude Opus 4.8',   msgs: '~1 300 сообщений' },
+      { name: 'GPT-5.5',           msgs: '~1 100 сообщений' },
+      { name: 'Gemini 3.5 Flash',  msgs: '~2 800 сообщений' },
     ],
     storage: '4.0 GB', vector: '20 000 записей · ≈ 200 MB',
     support: 'Приоритетный чат и email-поддержка',
+  },
+];
+
+// ── Model prices data (₽ per 1M tokens, курс 75 ₽/$) ──────────────── //
+
+const MODEL_PRICES = [
+  {
+    group: 'DeepSeek',
+    color: '#2563eb',
+    models: [
+      { name: 'DeepSeek V4 Pro',   ctx: '1M',   input: 32.6,   output: 65.3   },
+      { name: 'DeepSeek V4 Flash', ctx: '1M',   input: 10.5,   output: 21.0   },
+    ],
+  },
+  {
+    group: 'MiMo',
+    color: '#7c3aed',
+    models: [
+      { name: 'MiMo-V2.5 Pro',    ctx: '1M',   input: 32.6,   output: 65.3   },
+      { name: 'MiMo-V2.5',        ctx: '1M',   input: 10.5,   output: 21.0   },
+      { name: 'MiMo-V2 Flash',    ctx: '262K', input: 7.5,    output: 30.0   },
+    ],
+  },
+  {
+    group: 'Claude',
+    color: '#d97706',
+    models: [
+      { name: 'Claude Opus 4.8',   ctx: '1M',   input: 375,    output: 1875   },
+      { name: 'Claude Opus 4.7',   ctx: '1M',   input: 375,    output: 1875   },
+      { name: 'Claude Sonnet 4.6', ctx: '1M',   input: 225,    output: 1125   },
+      { name: 'Claude Haiku 4.5',  ctx: '200K', input: 75,     output: 375    },
+    ],
+  },
+  {
+    group: 'Gemini',
+    color: '#059669',
+    models: [
+      { name: 'Gemini 3.5 Flash',      ctx: '1M',   input: 112.5,  output: 675    },
+      { name: 'Gemini 3.1 Pro Preview', ctx: '1M',  input: 150,    output: 900    },
+      { name: 'Gemini 3.1 Flash-Lite', ctx: '1M',   input: 18.8,   output: 112.5  },
+    ],
+  },
+  {
+    group: 'GPT',
+    color: '#16a34a',
+    models: [
+      { name: 'GPT-5.5 Pro',    ctx: '1M',   input: 2250,   output: 13500  },
+      { name: 'GPT-5.5',        ctx: '1M',   input: 375,    output: 2250   },
+      { name: 'GPT-5.4 Pro',    ctx: '1M',   input: 2250,   output: 13500  },
+      { name: 'GPT-5.4',        ctx: '1M',   input: 187.5,  output: 1125   },
+      { name: 'GPT-5.4 mini',   ctx: '400K', input: 56.3,   output: 337.5  },
+      { name: 'GPT-5.4 nano',   ctx: '400K', input: 15.0,   output: 93.8   },
+      { name: 'GPT-5 mini',     ctx: '400K', input: 18.8,   output: 150    },
+    ],
+  },
+  {
+    group: 'Grok',
+    color: '#0891b2',
+    models: [
+      { name: 'Grok 4.3',              ctx: '1M',  input: 93.8,   output: 187.5  },
+      { name: 'Grok 4.20 Beta',        ctx: '2M',  input: 150,    output: 450    },
+      { name: 'Grok 4.20 Beta (NR)',   ctx: '2M',  input: 150,    output: 450    },
+    ],
+  },
+  {
+    group: 'Kimi',
+    color: '#7c3aed',
+    models: [
+      { name: 'Kimi K2.6', ctx: '262K', input: 71.3,   output: 300    },
+      { name: 'Kimi K2.5', ctx: '262K', input: 45.0,   output: 225    },
+    ],
+  },
+  {
+    group: 'MiniMax',
+    color: '#be185d',
+    models: [
+      { name: 'MiniMax M3',              ctx: '512K', input: 45.0,   output: 180    },
+      { name: 'MiniMax M2.7',            ctx: '204K', input: 22.5,   output: 90     },
+      { name: 'MiniMax M2.7 Highspeed',  ctx: '204K', input: 45.0,   output: 180    },
+    ],
+  },
+  {
+    group: 'Qwen',
+    color: '#b45309',
+    models: [
+      { name: 'Qwen3.7 Max',  ctx: '1M', input: 187.5,  output: 562.5  },
+      { name: 'Qwen3.7 Plus', ctx: '1M', input: 30.0,   output: 120    },
+    ],
+  },
+  {
+    group: 'GLM',
+    color: '#6366f1',
+    models: [
+      { name: 'GLM-5.1', ctx: '200K', input: 105,    output: 330    },
+      { name: 'GLM-5',   ctx: '200K', input: 75,     output: 240    },
+    ],
+  },
+  {
+    group: 'Nano Banana',
+    color: '#84cc16',
+    models: [
+      { name: 'Nano Banana Pro', ctx: '163K', input: 150,    output: 900    },
+      { name: 'Nano Banana 2',   ctx: '163K', input: 37.5,   output: 225    },
+    ],
   },
 ];
 
@@ -94,13 +201,97 @@ const PAID_PLANS = [
 
 const CHECK = `<svg class="cm-p3-item-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`;
 
+// ── Model Prices panel ─────────────────────────────────────────────── //
+
+function _renderModelPrices(root, { onBack, modalId } = {}) {
+  function fmtPrice(v) {
+    if (v >= 1000) return v.toLocaleString('ru-RU');
+    if (Number.isInteger(v)) return v.toString();
+    return v.toLocaleString('ru-RU', { maximumFractionDigits: 1 });
+  }
+
+  const rows = MODEL_PRICES.map(group => `
+    <tr class="mp-group-row">
+      <td colspan="3">
+        <div class="mp-group-label">
+          <span class="mp-group-dot" style="background:${group.color};"></span>
+          ${group.group}
+        </div>
+      </td>
+    </tr>
+    ${group.models.map(m => `
+      <tr class="mp-model-row">
+        <td class="mp-cell-name">
+          <span class="mp-model-dot" style="background:${group.color};"></span>
+          <span class="mp-model-name">${m.name}</span>
+          <span class="mp-ctx-badge">${m.ctx}</span>
+        </td>
+        <td class="mp-cell-num">${fmtPrice(m.input)}</td>
+        <td class="mp-cell-num">${fmtPrice(m.output)}</td>
+      </tr>
+    `).join('')}
+  `).join('');
+
+  root.innerHTML = `
+    <div class="cm-plans-hdr" style="margin-bottom:0;padding-bottom:14px;border-bottom:1px solid var(--border);margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px;">
+      <button class="cm-back" id="mp-back">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="cm-plans-ttl">Цены на модели</span>
+    </div>
+
+    <div class="mp-layout">
+      <div class="mp-left">
+        <h2 class="mp-left-title">Цены на текстовые модели</h2>
+        <p class="mp-left-desc">Odysseus измеряет использование ИИ в токенах. Таблица ниже показывает стоимость за 1 миллион токенов в рублях.</p>
+        <div class="mp-left-note">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;opacity:.5;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Курс конвертации: 75 ₽ / $
+        </div>
+        <div class="mp-left-note" style="margin-top:6px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;opacity:.5;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Ввод и вывод тарифицируются отдельно
+        </div>
+      </div>
+
+      <div class="mp-right">
+        <div class="mp-table-wrap">
+          <table class="mp-table">
+            <thead>
+              <tr>
+                <th class="mp-th-name">Модели</th>
+                <th class="mp-th-num">
+                  <div class="mp-th-inner">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    Ввод ₽/1M
+                  </div>
+                </th>
+                <th class="mp-th-num">
+                  <div class="mp-th-inner">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    Вывод ₽/1M
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  root.querySelector('#mp-back').addEventListener('click', onBack);
+  if (modalId) _setTitle(modalId, 'Цены на модели');
+}
+
 // ── Payment panel ──────────────────────────────────────────────────── //
 
 function _renderPayment(root, plan, yearly, { onBack }) {
   const price    = yearly ? plan.py : plan.pm;
   const origPrice = plan.pm;
   const period   = yearly ? 'год' : 'мес';
-  const saving   = yearly ? Math.round((origPrice - plan.py) * 12) : 0;
+  const monthSaving = origPrice - plan.py;
 
   let activeMethod = 'card';
   let promoOpen    = false;
@@ -111,7 +302,7 @@ function _renderPayment(root, plan, yearly, { onBack }) {
   function _brand(n) { n=n.replace(/\s/g,''); if(/^4/.test(n)) return 'VISA'; if(/^5[1-5]|^2[2-7]/.test(n)) return 'MC'; if(/^2200/.test(n)) return 'МИР'; return ''; }
 
   function render() {
-    const total = promoApplied ? +(price * 0.9).toFixed(1) : price;
+    const total = promoApplied ? Math.round(price * 0.9) : price;
     root.innerHTML = `
       <div class="cm-plans-hdr" style="margin-bottom:14px;">
         <button class="cm-back" id="pay-back">
@@ -126,15 +317,15 @@ function _renderPayment(root, plan, yearly, { onBack }) {
             <div class="cp-order-tokens">${_fmtShort(plan.tokens)} токенов / мес</div>
           </div>
           <div>
-            <div class="cp-order-price">$${price}</div>
+            <div class="cp-order-price">${_fmtRub(price)}</div>
             <div class="cp-order-period">за ${period}</div>
           </div>
         </div>
         <div class="cp-order-divider"></div>
-        <div class="cp-order-line"><span>Тариф «${plan.name}»</span><span>$${origPrice} / мес</span></div>
-        ${yearly ? `<div class="cp-order-line"><span>Годовая скидка (−20%)</span><span class="cp-order-discount">−$${Math.round(saving/12)} / мес</span></div>` : ''}
-        ${promoApplied ? `<div class="cp-order-line"><span>Промокод ODYSSEUS10</span><span class="cp-order-discount">−$${(price*0.1).toFixed(1)}</span></div>` : ''}
-        <div class="cp-order-line total"><span>Итого сейчас</span><span>$${total}</span></div>
+        <div class="cp-order-line"><span>Тариф «${plan.name}»</span><span>${_fmtRub(origPrice)} / мес</span></div>
+        ${yearly ? `<div class="cp-order-line"><span>Годовая скидка (−20%)</span><span class="cp-order-discount">−${_fmtRub(monthSaving)} / мес</span></div>` : ''}
+        ${promoApplied ? `<div class="cp-order-line"><span>Промокод ODYSSEUS10</span><span class="cp-order-discount">−${_fmtRub(price * 0.1)}</span></div>` : ''}
+        <div class="cp-order-line total"><span>Итого сейчас</span><span>${_fmtRub(total)}</span></div>
       </div>
       <div class="cm-card" style="margin-bottom:10px;">
         <div class="cm-sec-label">Способ оплаты</div>
@@ -176,7 +367,7 @@ function _renderPayment(root, plan, yearly, { onBack }) {
           ${promoApplied?`<div style="font-size:12px;color:var(--red);opacity:.8;">Скидка 10% применена</div>`:''}
         `}
       </div>
-      <button class="cp-submit" id="cp-pay">Оплатить $${total} / ${yearly?'год':'мес'}</button>
+      <button class="cp-submit" id="cp-pay">Оплатить ${_fmtRub(total)} / ${yearly?'год':'мес'}</button>
       <div class="cp-secure"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Защищённое соединение · SSL</div>
     `;
 
@@ -212,7 +403,7 @@ function _renderSuccess(root, plan, yearly, total, onBack) {
     <div class="cp-success">
       <div class="cp-success-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="cp-success-title">Подписка оформлена!</div>
-      <div class="cp-success-sub">Тариф <strong>${plan.name}</strong> активирован.<br>Следующее списание $${total} — через ${yearly?'год':'месяц'}.</div>
+      <div class="cp-success-sub">Тариф <strong>${plan.name}</strong> активирован.<br>Следующее списание ${_fmtRub(total)} — через ${yearly?'год':'месяц'}.</div>
       <button class="cp-submit" id="cp-done" style="width:auto;padding:10px 32px;margin-top:6px;">Готово</button>
     </div>
   `;
@@ -226,6 +417,17 @@ function _renderPlans(root, { onBack, modalId } = {}) {
 
   function check(color) {
     return `<svg class="cm-p3-item-check" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.6" stroke-linecap="round" opacity=".7"><polyline points="20 6 9 17 4 12"/></svg>`;
+  }
+
+  function showPrices() {
+    _renderModelPrices(root, {
+      modalId,
+      onBack: () => {
+        render();
+        _setTitle(modalId, 'Планы подписки');
+      },
+    });
+    _setTitle(modalId, 'Цены на модели');
   }
 
   function render() {
@@ -251,15 +453,15 @@ function _renderPlans(root, { onBack, modalId } = {}) {
                 <div class="cm-p3-name">${p.name}</div>
                 <div class="cm-p3-desc">${p.desc}</div>
                 <div class="cm-p3-price-row">
-                  <span class="cm-p3-dollar">$</span>
-                  <span class="cm-p3-amount">${price}</span>
+                  <span class="cm-p3-amount">${price.toLocaleString('ru-RU')}</span>
+                  <span class="cm-p3-rub">₽</span>
                   <span class="cm-p3-period">/ в месяц</span>
                 </div>
                 <button class="cm-p3-cta ${p.popular?'primary':''}" data-plan="${p.id}">Обновить</button>
                 <div class="cm-p3-divider"></div>
 
                 <div class="cm-p3-section-title">Вычислительные кредиты</div>
-                <div class="cm-p3-credits-val" style="color:${p.iconColor};">${p.tokens.toLocaleString('en-US')} / мес</div>
+                <div class="cm-p3-credits-val" style="color:${p.iconColor};">${p.tokens.toLocaleString('ru-RU')} / мес</div>
                 ${p.models.map(m => `
                   <div class="cm-p3-item">${ck}
                     <div class="cm-p3-item-wrap">
@@ -316,11 +518,20 @@ function _renderPlans(root, { onBack, modalId } = {}) {
           `;
         }).join('')}
       </div>
+
+      <div class="cm-p3-footer">
+        <button class="mp-prices-btn" id="btn-model-prices">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Цены на модели
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
     `;
 
     if (onBack) root.querySelector('#plans-back')?.addEventListener('click', onBack);
     root.querySelector('#seg-m').addEventListener('click', () => { yearly = false; render(); });
     root.querySelector('#seg-y').addEventListener('click', () => { yearly = true; render(); });
+    root.querySelector('#btn-model-prices').addEventListener('click', showPrices);
 
     root.querySelectorAll('[data-plan]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -378,23 +589,17 @@ async function _loadCredits(root, { onPlans }) {
       <div class="cm-stats">
         <div class="cm-stat"><div class="cm-stat-lbl">Подписочные</div><div class="cm-stat-val">${_fmtShort(limit)}</div><div class="cm-stat-sub">лимит в месяц</div></div>
         <div class="cm-stat"><div class="cm-stat-lbl">Использовано</div><div class="cm-stat-val">${_fmtShort(used)}</div><div class="cm-stat-sub">${_fmtNum(used)} токенов</div></div>
-        <div class="cm-stat"><div class="cm-stat-lbl">Доступно</div><div class="cm-stat-val">${_fmtShort(remaining ?? 0)}</div><div class="cm-stat-sub">${_fmtNum(remaining ?? 0)} токенов</div></div>
+        <div class="cm-stat"><div class="cm-stat-lbl">Остаток</div><div class="cm-stat-val">${_fmtShort(remaining)}</div><div class="cm-stat-sub">${resetDate ? 'до ' + resetDate : ''}</div></div>
       </div>
-      <div>
-        <div class="cm-bar-hdr"><span class="cm-bar-lbl">Использование за месяц</span><span class="cm-bar-pct">${Math.round(pct)}%</span></div>
-        <div class="cm-bar-track"><div id="cm-bar" class="cm-bar-fill" style="width:0%;background:${barColor};"></div></div>
-        ${resetDate ? `<div class="cm-reset-row"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Сброс ${resetDate}</div>` : ''}
-      </div>
+      <div class="cm-bar-wrap"><div class="cm-bar" style="width:${pct}%;background:${barColor};"></div></div>
     `;
-    setTimeout(() => { const b = document.getElementById('cm-bar'); if (b) b.style.width = pct + '%'; }, 80);
   }
 
   const packages = [
+    { label: '1M', tokens: 1_000_000 },
+    { label: '5M', tokens: 5_000_000 },
     { label: '10M', tokens: 10_000_000 },
-    { label: '20M', tokens: 20_000_000 },
-    { label: '30M', tokens: 30_000_000 },
     { label: '50M', tokens: 50_000_000 },
-    { label: '100M', tokens: 100_000_000 },
   ];
 
   root.innerHTML = `
@@ -447,7 +652,7 @@ async function _loadCredits(root, { onPlans }) {
   root.querySelector('#cm-buy').addEventListener('click', () => {
     if (!selPkg) return;
     const fakePlan = { id: 'pkg', name: `Пакет ${selPkg.label}`, tokens: selPkg.tokens,
-      pm: +(selPkg.tokens / 500_000).toFixed(1), py: +(selPkg.tokens / 500_000).toFixed(1) };
+      pm: Math.round(selPkg.tokens / 500_000), py: Math.round(selPkg.tokens / 500_000) };
     const goBack = () => _loadCredits(root, { onPlans });
     _renderPayment(root, fakePlan, false, { onBack: goBack });
   });
